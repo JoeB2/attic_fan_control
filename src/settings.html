@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta name="file" content="set_bounds.html">
+    <meta name="author" content="Joe Belson 20210822">
+    <meta name="what" content="esp8266 html for WiFi connected temp/humidity bounds.">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Set Temp / Humidity Bounds for 110VAC relays</title>
+  </head>
+<style type="text/css">
+      body {font-size: 12px; background-color: #f6f6ff;font-family: Calibri, Myriad;text-align: center;}
+      body p{text-align: left;}
+      table th{text-align: center;width: 23pt;border-bottom:2px solid rgb(8, 8, 8);}
+      table.calibrate {font-size:smaller ; margin-left:10px; margin-right: auto;  width: 300px;  border: 1px solid black; border-style:solid;}
+      table.calibrate caption {	background-color: #f79646;	color: #fff;	font-size: large;	font-weight: bold;	letter-spacing: .3em;}
+      table.calibrate thead th {
+                  padding: 3px;
+                  background-color: #fde9d9;
+                  font-size:16px;
+                  border-width: 1px;
+                  border-style: solid;
+                  border-color: #f79646 #ccc;
+      }
+      table.calibrate td {
+                  font-size: 12px;
+                  font-weight: bold;
+                  text-align: center;
+                  padding: 2px;
+                  background-color:shite;
+                  color:black;
+                  font-weight: bold;
+      }
+</style>
+<body style="text-align: left;">
+  <hr><b><i>Current setttings are sent from the MCU every 7 seconds.</i></b>
+    <table class="calibrate">
+      <caption>Set Temp & Humidty Bounds</caption>
+        <thead>
+            <tr>
+                <th>Fan on Attic Temp</th>
+                <th>Fan off Attic Temp</th>
+                <th>AID On Value</th>
+                <th>AID Off Value</th>
+                <th>AOD On Value</th>
+                <th>AOD Off Value</th>
+                <th>IOD On Value</th>
+                <th>IOD Off Value</th>
+                <th>Sensor Delay Minutes</th>
+                <th>
+                  <input id="refresh" type="submit" value="Refresh" onclick="f_refresh()" style="margin: 1px; color: black; background-color: yellow; font-weight: bold;">
+                  <input id="Submit" type="submit" value="Submit" onclick="f_submit()" style="margin: 2px; color: black; background-color: rgb(248, 138, 171); font-weight: bold;">
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><input type="number" id="attic_on"  name="limit" min="0" max="120" ></td>
+                <td><input type="number" id="attic_off" name="limit" min="0" max="120"></td>
+                <td><input type="number" id="AID_on"    name="limit" min="0" max="120" ></td>
+                <td><input type="number" id="AID_off"   name="limit" min="0" max="120"></td>
+                <td><input type="number" id="AOD_on"    name="limit" min="0" max="120" ></td>
+                <td><input type="number" id="AOD_off"   name="limit" min="0" max="120" ></td>
+                <td><input type="number" id="IOD_on"    name="limit" min="0"  max="120" ></td>
+                <td><input type="number" id="IOD_off"   name="limit" min="0"  max="120" ></td>
+                <td><input type="number" id="delay"     name="limit" min="3"  max="999" ></td>
+            </tr>
+        </tbody>
+    </table>
+    <hr>
+    <p style="font-size:inherit;">AID: Attic - Inside Temp Delta</p>
+    <p style="font-size: inherit;"> AOD: Attic - Outside Temp Delta</p>
+    <p style="font-size: inherit;">IOD: Inside - Outside Temp Delta</p>
+    <p style="font-weight: bold; font-size: large;">NOTE: Value of zero causes the setting to be ignored</p>
+    <hr>
+    <br><p id="settings">Current MCU Settings</p>
+  </body>
+
+<script language = "javascript" type = "text/javascript">
+
+      let webSock       = new WebSocket('ws://'+window.location.hostname+':80');
+      webSock.onopen    = function(evt){f_webSockOnOpen(evt);}
+      webSock.onmessage = function(evt){f_webSockOnMessage(evt);}
+      webSock.onerror   = function(evt){f_webSockOnError(evt);}
+
+
+      const s='[{"t1":0,"h1":0,"t2":0,"h2":0,"t3":0,"h3":0,"fan":0,"onMins":0},{"attic_on":0,"attic_off","AID_on":0,"AID_off":0,"AOD_on":0,"AOD_off":0,"IOD_on":0,"IOD_off":0,"delay":0}]';
+
+
+      function f_webSockOnMessage(evt){
+        if(typeof evt.data === "string"){
+          j=JSON.parse(evt.data);
+          document.getElementByName("settings").innerHTML=evt.data;
+
+            for(var key in j[1]){
+                if(j[1].hasOwnProperty(key)){
+                    if(document.getElementById(key).value=="")
+                      document.getElementById(key).value=key!="delay"?j[1][key]:j[1][key]/1000;
+                }
+            }
+        }
+      }
+      function f_webSockOnOpen(evt){}
+      function f_webSockOnError(evt){}
+      function f_submit(){
+        var str= '[{"t1":0,"h1":0,"t2":0},{"t1_on":75,"t1_off":82,"h1_on":75,"h1_off":85,"t2_on":75,"t2_off":80,"delay":7}]';
+        j=JSON.parse(str);
+
+        for(var key in j[1]){
+          console.log(document.getElementById(key).value);
+          j[1][key]=document.getElementById(key).value*1;
+          if(key=="delay")j[1][key]=j[1][key]*1000;
+        }
+        console.log("sending:", JSON.stringify(j));
+        webSock.send(JSON.stringify(j));
+      }
+      function f_refresh(){
+        var x=document.getElementsByName("limit");
+        for(var i=0;i<x.length;i++)x[i].value="";
+      }
+  </script>
+</html>

@@ -1,0 +1,24 @@
+{
+	"folders": [
+		{
+			// Master project
+			"name": "Attic Fan Controller",
+			"path": ".."
+		},
+		{
+			// Remote sensor: ESPNOW send json string to the master
+			"name": "Attic Fan Controller Remote Sensor",
+			"path": "..\\AtticFanRemoteSensor"
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"*.tcc": "cpp",
+			"string": "cpp",
+			"string_view": "cpp"
+		},
+		"files.exclude":{
+				"**/AtticFanRemoteSensor":true
+			}
+	}
+}

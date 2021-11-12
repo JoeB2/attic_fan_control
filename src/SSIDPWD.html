@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta name="file" content="set_bounds.html">
+    <meta name="author" content="Joe Belson 20210822">
+    <meta name="what" content="esp8266 html for WiFi connected temp/humidity bounds.">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Set Temp / Humidity Bounds for 110VAC relays</title>
+  </head>
+
+
+  <body style="text-align: left;">
+    <hr>
+      <table class="calibrate">
+        <caption style="font-weight: bolder;">Set Temp & Humidty Relays SSID : PWD</caption>
+          <thead>
+              <tr>
+                  <th>SSID</th>
+                  <th>PWD</th>
+              </tr>
+          </thead>
+          <tbody>
+              <tr>
+                  <td><input type="text" id="SSID" name="cred"></td>
+                  <td><input type="text" id="PWD" name="cred"></td>
+                  <td><input type="submit" id="submit" onclick="f_submit()"></td>
+              </tr>
+          </tbody></table>
+
+
+      <br>
+      <label for="dhcp">DHCP:</label><input type="checkbox" id="isDHCP" onclick="f_dhcp(checked)">
+      <br><br>
+
+      <label for="ip"      name="dhcp">IP: </label>     <input type="text"  id="IP"      name="dhcp" style="width: 7rem;">
+      <label for="gateway" name="dhcp">Gateway: </label><input type="text" id="GW" name="dhcp" style="width: 7rem;">
+      <label for="mask"    name="dhcp">Mask: </label>   <input type="text" id="MASK"    name="dhcp" style="width: 7rem;">
+      <br><p id="status"></p>
+    </body>
+    <script language = "javascript" type = "text/javascript">
+  
+        let webSock       = new WebSocket('ws://'+window.location.hostname+':80');
+        webSock.onopen    = function(evt){f_webSockOnOpen(evt);}
+        webSock.onmessage = function(evt){f_webSockOnMessage(evt);}
+        webSock.onerror   = function(evt){f_webSockOnError(evt);}
+        var str= '{"SSID":"0","PWD":"0", "IP":"0","GW":"0","MASK":"0","isDHCP":false}';
+  
+        function f_webSockOnMessage(evt){
+          if(typeof evt.data === "string"){
+              document.getElementById("status").innerHTML=evt.data;
+              const j=JSON.parse(evt.data);
+              const n=document.getElementsByName("dhcp");
+              for(var i=0;i<n.length;i++)
+                if(n[i].value="")n[i].value=j[n[i].id];
+          }
+        }
+        function f_webSockOnOpen(evt){}
+        function f_webSockOnError(evt){}
+        function f_submit(){
+          j=JSON.parse(str);
+          for(var key in j){
+            if(key=="isDHCP")j[key]=document.getElementById(key).checked;
+            else j[key]=document.getElementById(key).value;
+          }
+          console.log(j);
+          webSock.send(JSON.stringify(j));
+        }
+        function f_dhcp(checked){
+          const n=document.getElementsByName("dhcp");
+          if(checked)for(var i=0;i<n.length;i++)n[i].setAttribute("hidden", "hidden");
+          else for(var i=0;i<n.length;i++)n[i].removeAttribute("hidden");
+        }
+     </script>
+  </html>

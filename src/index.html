@@ -1,0 +1,171 @@
+<!DOCTYPE HTML><html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+  <style>
+    html {
+     font-family: Arial;
+     display: inline-block;
+     margin: 0px auto;
+     text-align: left;
+    }
+    h2 { font-size: 3.0rem; }
+    p { font-size: 2.5rem; }
+    .units { font-size: 1.2rem; }
+    .bmp-labels{
+      font-size: 1.5rem;
+      vertical-align:middle;
+      padding-bottom: 15px;
+    }
+    input[type=submit] {
+      border: 0;
+      line-height: 2.5;
+      padding: 0 5px;
+      font-size: 17px;
+      text-align: center;
+            
+      font-weight: bolder;
+      padding: 3px 3x;
+      text-decoration: none;
+      margin: 0px 0px;
+      cursor: pointer;
+      width: auto;
+      height: auto;
+      box-shadow: inset 2px 2px 3px rgba(255, 255, 255, .6),
+                  inset -2px -2px 3px rgba(0, 0, 0, .6);
+   }
+  </style>
+  <title>Attic Fan Switch</title>
+</head>
+<body>
+  <h2>ESP8266 Attic Fan Manager</h2>
+  <p>
+    <i class="fas fa-thermometer-half" style="color:#059e8a;"></i> 
+    <span class="bmp-labels">Temp-Attic</span>
+    <span id="t1">%T1%</span>
+    <sup class="units">&deg;F</sup>
+    <i class="fas fa-tint" style="color:#00add6;"></i>
+    <span class="bmp-labels">Humid-Attic</span>
+    <span id="h1">%H1%</span>
+    <sup class="units">%</sup>
+    <i class="fas fa-hourglass-half" style="color: #00add6;"></i>
+    <span class="bmp-labels">Press-Attic</span>
+    <span id="p1">%P1%</span>
+    <sup class="units">Hg</sup>
+  </p>
+  <p>
+    <i class="fas fa-thermometer-half" style="color:#059e8a;"></i> 
+    <span class="bmp-labels">Temp-Inside</span> 
+    <span id="t2">%T2%</span>
+    <sup class="units">&deg;F</sup>
+    <i class="fas fa-tint" style="color:#00add6;"></i>
+    <span class="bmp-labels">Humid-Inside</span>
+    <span id="h2">%H2%</span>
+    <sup class="units">%</sup>
+    <i class="fas fa-hourglass-half" style="color: #00add6;"></i>
+    <span class="bmp-labels">Press-Attic</span>
+    <span id="p2">%P2%</span>
+    <sup class="units">Hg</sup>
+  </p>
+  <p>
+    <i class="fas fa-thermometer-half" style="color:#059e8a;"></i> 
+    <span class="bmp-labels">Temp-Outside</span> 
+    <span id="t3">%T3%</span>
+    <sup class="units">&deg;F</sup>
+    <i class="fas fa-tint" style="color:#00add6;"></i>
+    <span class="bmp-labels">Humid-Outside</span>
+    <span id="h3">%H3%</span>
+    <sup class="units">%</sup>
+    <i class="fas fa-hourglass-half" style="color: #00add6;"></i>
+    <span class="bmp-labels">Press-Attic</span>
+    <span id="p3">%P3%</span>
+    <sup class="units">Hg</sup>
+  </p>
+  <table>
+    <th><tr style="width: 90px; font-weight: bold;" >
+      <td style="width:90px; font-weight: bold;">Fan</td>
+      <td style="width: 90px; font-weight: bold;">Fan Timer</td>
+      <td style="width: 90px; font-weight: bold;">Minutes</td>
+      <td></td><td></td>
+      <td style="font-size: large;">SYSTEM STATUS</td>
+    </tr>
+  </th>
+    <tr>
+      <td style="width: 60px; font-weight: bolder;" id="fan"></td>
+      <td><input type="button" value="+ 5mins" onclick="f_fan(+1)"></td>
+      <td><label for="fan" id="lbl_fan" style="width: 90px; font-weight: bold; text-align: right;"></label></td>
+    </tr>
+    <tr>
+      <td><input type="submit" onclick="f_fan(0)" style="background:rgb(57, 216, 110); height: 30px; font-size: smaller;font-weight: bolder;"></td>
+      <td><input type="button" value="- 5mins" onclick="f_fan(-1)"></td>
+      <td></td>
+      <td><input type="submit" id="bt_overide_OFF" onclick="f_overide_OFF(true)" style="background-color: red; font-weight: bolder;" value="Stop FAN"></td>
+      <td></td><td style="width: 200px;"><label id="overide_OFF" style="font-weight: bolder; font-size: 30pt; color: green;">ON LINE</label></td>
+
+    </tr>
+
+  </table>
+  <br><br>
+  <input value="Set Bounds" type="submit" onclick="f_redirect('Set_Bounds')" style="background:moccasin">
+  <p id="json"></p>
+</body>
+
+<script language = "javascript" type = "text/javascript">
+
+  let webSock       = new WebSocket('ws://'+window.location.hostname+':80');
+  webSock.onopen    = function(evt){f_webSockOnOpen(evt);}
+  webSock.onmessage = function(evt){f_webSockOnMessage(evt);}
+  webSock.onerror   = function(evt){f_webSockOnError(evt);}
+
+  var s='[{"t1":0,"h1":0,"p1":0,"t2":0,"h2":0,"p2":0,"t3":0,"h3":0,"p3":0,"fan":false,"onMins":0},{"attic_on":75,"attic_off":82,"AID_on":75,"AID_off":85,"AOD_on":75,"AOD_off":80,"IOD_on":0,"IOD_on":20,"IOD_off":20,"overide_OFF":false,"delay":7}]';
+  var j = JSON.parse(s);
+
+  function f_webSockOnMessage(evt){
+      if(typeof evt.data === "string"){
+        var t='<i class="fas fa-toggle-on" style="color: green;"></i> on';
+        var f='<i class="fas fa-toggle-off" style="color:red;"></i> off',
+        s=evt.data;
+        j=JSON.parse(evt.data);
+          for(var key in j[0]){
+              if(j[0].hasOwnProperty(key)){
+                if(key!="fan"){document.getElementById(key).innerHTML=j[0].key;}
+                else{
+                  document.getElementById(key).innerHTML=j[0].key?t:f;
+                  if(document.getElementById("onMins").innerHTML==""){
+                        document.getElementById("onMins").innerHTML=j[1].onMins;
+                  }
+                  j[1].overide_OFF=!j[1].overide_OFF;
+                  f_overide_OFF(false);
+                }
+              }
+          }
+      }
+  }
+  function f_webSockOnOpen(evt){}
+  function f_webSockOnError(evt){}
+  function f_redirect(where){;
+                      window.location.href = "/"+where;
+  }
+  function f_fan(value){
+    if(!value){ // send fan timer value to MCU
+    j[0].onMins=Number(document.getElementById("lbl_fan").innerHTML);
+    console.log(JSON.stringify(j));
+    webSock.send(JSON.stringify(j));
+    return;
+    }
+    // increment/decrement fan timer value
+    var m=Number(document.getElementById("lbl_fan").innerHTML)+value*5;
+    if(m<0)m=0
+    document.getElementById("lbl_fan").innerHTML=m;
+  }
+  function f_overide_OFF(send){
+    j[1].overide_OFF=!j[1].overide_OFF;
+    document.getElementById("bt_overide_OFF").style.backgroundColor=j[1].overide_OFF?'green':'red';
+    document.getElementById("bt_overide_OFF").value=j[1].overide_OFF?'Enable FAN':'STOP Fan';
+    document.getElementById("overide_OFF").style.color=j[1].overide_OFF?'red':'green';
+    document.getElementById("overide_OFF").innerHTML=j[1].overide_OFF?'OFF LINE':'ON LINE';
+    
+    if(send)webSock.send(JSON.stringify(j));
+  }
+  </script>
+</html>
