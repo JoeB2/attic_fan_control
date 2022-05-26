@@ -2,113 +2,158 @@
 <html lang="en">
   <head>
     <meta name="file" content="set_bounds.html">
-    <meta name="author" content="Joe Belson 20210822">
+    <meta name="author" content="Joe Belson 20220422">
     <meta name="what" content="esp8266 html for WiFi connected temp/humidity bounds.">
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AtticFan Controller : Network Setup</title>
+    <title id="title" updated="0">Todd's Sprinkler: Network Setup</title>
   </head>
-  <body style="text-align: left;">
+<style>
+  .reboot{
+    background-color: red;
+    color:rgb(255, 255, 255);
+    padding:1.5vw 1.5vw 1.5vw 1.5vw;
+    border-radius: 17%;
+    box-shadow: inset 2px 2px 3px rgba(153, 150, 150, .6),
+    inset -2px -2px 3px rgba(0, 0, 0, 0.6);
+    border-bottom: black solid 3px;
+    border-spacing: 45px;
+    cursor: pointer;
+    font: size 2vw;
+    font-weight: bold;
+    font-size: 17px;
+  }
+  .updated{
+    background-color: green;
+    color:rgb(255, 255, 255);
+    padding:1vw 1vw 1vw 1vw;
+    border-radius: 0%;
+    box-shadow: inset 2px 2px 3px rgba(153, 150, 150, .6),
+    inset -2px -2px 3px rgba(0, 0, 0, 0.6);
+    border-bottom: black solid 3px;
+    border-spacing: 45px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+</style>
+  <body>
     <hr>
-      <table class="calibrate"   id="settings" updated="0">
+    <div onclick="updating=true">
+      <table class="calibrate">
         <caption style="font-weight: bolder;padding-bottom:1rem">
-          <h1>Set WiFi SSID & PWD & IP</h1>
+          <h1>WiFi SSID & PWD & IP</h1>
+          <h2 id="updated" class="updated" hidden>UPDATED</h2>
         </caption>
-          <thead>
-              <tr>
-                  <th>SSID</th>
-                  <th>PWD</th>
-              </tr>
+         <thead>
+            <tr>
+              <th>SSID (Case Sensitive)</th>
+              <th>PWD</th>
+            </tr>
           </thead>
-          <tbody>
-              <tr>
-                  <td><input  id="ssid"   type="text"   name="cred"></td>
-                  <td><input  id="pwd"    type="text"   name="cred"></td>
-                  <td><input  id="submit" type="submit" onclick="f_submit()"></td>
-              </tr>
-          </tbody></table>
-
-
-      <br>
-      <label for="dhcp">DHCP:</label>
-        <input type="checkbox" id="isDhcp" onclick="f_dhcp(this.checked)">
-      <br><br>
-
-      <label for="ip"   name="dhcp">IP:     </label><input id="ip"    type="text" name="dhcp" style="width: 7rem;">
-      <label for="gw"   name="dhcp">Gateway:</label><input id="gw"    type="text" name="dhcp" style="width: 7rem;">
-      <label for="mask" name="dhcp">Mask:   </label><input id="mask"  type="text" name="dhcp" style="width: 7rem;">
-    </body>
+            <tr>
+              <td><input  id="ssid"   type="text"   name="cred"></td>
+              <td><input  id="pwd"    type="text"   name="cred"></td>
+            </tr>
+      </table>
+      <table>
+            <tr><td><br></td></tr>
+            <tr>
+              <td>DHCP: <input type="checkbox" id="isDHCP" name="isDHCPServer" onclick="f_dhcp(this.checked)"/></td>
+            </tr>
+            <tr id="dhcp">
+              <td><label for="ip"   name="dhcp">IP:     </label><input id="ip"    type="text" name="dhcp" style="width: 5rem;"></td>
+              <td><label for="gw"   name="dhcp">Gateway:</label><input id="gw"    type="text" name="dhcp" style="width: 5rem;"></td>
+              <td><label for="mask" name="dhcp">Mask:   </label><input id="mask"  type="text" name="dhcp" style="width: 5rem;"></td>
+            </tr>
+      </table>
+    </div>
+    <p><input  id="submit2" type="submit" value="Submit Changes" onclick="f_submit()">
+      <input type="submit" onclick="history.back()" value="Back to Main">
+      <input id="reboot" type="submit" onclick="f_reboot('reboot')" class="reboot" value="REBOOT" hidden>
+    </p>
+    <hr>
+  </body>
     <script language = "javascript" type = "text/javascript">
   
         let webSock       = new WebSocket("ws://" + window.location.hostname + ":80?source=wifi");
-        webSock.onopen    = function(evt){webSock.send('{"json":' + ping_network + '}');};
+        webSock.onopen    = function(evt){webSock.send('{"src":"network","what":"refresh"}');}
         webSock.onmessage = function(evt){f_webSockOnMessage(evt);}
         webSock.onerror   = function(evt){f_webSockOnError(evt);}
   
-        const empty          = 0  // 0b00000000
-            , readings       = 1  // 0b00000001
-            , settings       = 2  // 0b00000010
-            , net            = 4  // 0b00000100
-            , atticEpochTime = 9  // 0b00001001
-            , fanOnMs        = 17 // 0b00010001
-            , systemEnabled  = 33 // 0b00100001
-            , ping_readings  = 65 // 0b01000001
-            , ping_settings  = 66 // 0b01000010
-            , ping_network   = 68 // 0b01000100
-
-        ;
-
+        let updating = false;  // local flag: don't refresh text boxes using mcu json.  "We are updating values"
         let j = {
-              json : net
+              src : "mcuNetwork"
+            , what : "refresh"
             , ssid : "ssid"
             , pwd : "pwd"
-            , isDHCP : 1
+            , isDHCP : false
             , ip : "11.1.1.11"
             , gw : "11.1.1.254"
             , mask : "255.255.255.0"
+            , updated : false         // flag did MCU just save WiFi credentials?
+            , reboot : false          // flag - tell the MCU to reboot.  Try AP_Mode STA
           };
-
         function f_webSockOnMessage(evt){
-          if(document.getElementById("settings").getAttribute("updated")=="1")return;
-          if(typeof evt.data === "string"){
-              const j=JSON.parse(evt.data);
-              if(j.json != net)return;
-              for(key in j){
-                if(key == "json")continue;
-                dv = document.getElementById(key);
+          if (typeof evt.data === "string") {
+            r = JSON.parse(evt.data);
+            if(r.src != "mcuNetwork")return;
+            j=r;console.log(j);
+            if(updating ^ j.updated)return; // ...updated == bool return from mcu save of the struct.
+            for (key in j){
+              if(key == "src" || key == "what")continue;
+              dv = document.getElementById(key);
+              if(dv.value=="" || dv.value==null){
                 switch(key){
                   case "ssid":dv.value = j.ssid;break;
                   case "isDhcp":f_dhcp(j.isDHCP);break;
                   case "ip":dv.value = j.ip;break;
                   case "gw":dv.value = j.gw;break;
                   case "mask":dv.value = j.mask;break;
+                  case "updated":
+                    if(j.updated){
+                      updating ^= j.updated; // if this is an "updated mcu return" we are done with the last local update
+                      f_reboot('updated');
+                      dv.removeAttribute("hidden");
+                    }break;
                 }
               }
-          }document.getElementById("settings").setAttribute("updated", "1");
-        }
+            }
+          }
+         }
         function f_webSockOnError(evt){}
         function f_submit(){
           for(var key in j){
-            if(key == "json")continue;
-            if(key=="isDHCP")
-              j[key]=document.getElementById(key).checked;
-            else j[key]=document.getElementById(key).value;
+            switch(key){
+              case "src":break;
+              case "isDHCP":j[key]=document.getElementById(key).checked;break;
+              case "updated":j.updated = 1; break;
+              case "reboot":j.reboot = false;break;
+              default: j[key]=document.getElementById(key).value;
+            }
           }
-          j.json = net;
+          j.src = "network";
+          j.what = "submit";
+          console.log(j);
           webSock.send(JSON.stringify(j));
-          document.getElement.getElementById("title").setAttribute("updated", "0");
         }
-        function f_dhcp(){
-          chk = arguments[0];console.log(chk);
-          document.getElementById("isDhcp").checked = chk;
-          const n = document.getElementsByName("dhcp");
-          if(chk){
-            for(var i=0;i<n.length;i++)
-              n[i].setAttribute("hidden", "hidden");
-          }else{
-            for(var i=0;i<n.length;i++)
-              n[i].removeAttribute("hidden");
-          }
+        function f_dhcp(tf){
+          console.log(tf);
+          const dhcp = document.getElementById("dhcp");
+          if(tf)dhcp.setAttribute("hidden", "hidden");
+        else
+        dhcp.removeAttribute("hidden");
+       }
+       function f_reboot(what){
+        switch (what){
+          case 'reboot':
+              webSock.send('{"src":"network","what":"reboot"}');
+              window.location.href='http://' + j.ip;
+            break;
+          case 'updated':
+            // make visible REBOOT
+              document.getElementById("reboot").removeAttribute("hidden");
+            break;
+        }
        }
      </script>
   </html>

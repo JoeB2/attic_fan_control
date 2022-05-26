@@ -30,6 +30,6 @@ void loop(void)
   Serial.println("DONE");
   
  for(int i=0;i<sensors.getDeviceCount();i++) {
-   Serial.println("Temperature for Device "+String(i)+" is: " + String(sensors.getTempCByIndex(i)));
+   Serial.printf("d: %i, a: T "+String(i)+" is: " + String(sensors.getTempCByIndex(i)));
  } 
 }

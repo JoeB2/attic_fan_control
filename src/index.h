@@ -1,4 +1,15 @@
-const char index_html[] PROGMEM =  R"=====(
+// pgm_read_byte() bug Stack Dumps: https://github.com/esp8266/Arduino/issues/3140 
+#undef pgm_read_byte(addr)
+#define pgm_read_byte(addr)                                                             \
+(__extension__({                                                                        \
+    PGM_P __local = (PGM_P)(addr);  /* isolate varible for macro expansion */           \
+volatile ptrdiff_t __offset = ((uint32_t)__local & 0x00000003); /* byte aligned mask */ \
+    const uint32_t* __addr32 = (const uint32_t*)((const uint8_t*)(__local)-__offset);   \
+    uint8_t __result = ((*__addr32) >> (__offset * 8));                                 \
+    }))
+// END pgm_read_byte()
+
+const char MAIN[] PROGMEM =  R"=====(
 <!DOCTYPE html>
 <html>
     <head>
@@ -9,317 +20,328 @@ const char index_html[] PROGMEM =  R"=====(
             integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr"
             crossorigin="anonymous"
         />
-        <title>AtticFan Controller : Readings</title>
+        <title>Attic Fan Controller</title>
         <style>
-            html {
+            @viewport{width:device-width;zoom:1.0;}
+            @-ms-viewport {width: device-width ;}
+            html{
                 font-family: Arial;
                 display: inline-block;
                 margin: 0px auto;
                 text-align: left;
+                min-width: 544px;
+                min-height:777px;
+                background-color: dodgerblue;
             }
             h2 {
-                font-size: 2rem;
+                font-size: 4.0vw;
                 text-align: center;
             }
             h3 {
-                font-size: 2rem;
-                text-align: center;
-            }
-            .units {
-                font-size: 1.0rem;
-            }
-            input[type=button]{
-                text-align: center;
-
+                font-size: 2.8vw;
                 font-weight: bold;
-                cursor: pointer;
-                box-shadow: inset 1px 1px 1px rgba(255, 255, 255, 0.6),
-                    inset -1px -1px 1px rgba(0, 0, 0, 0.6);
-
+                text-align: center;
+                background-color: rgb(255,255,255);
+                color: blue;
+                vertical-align: top;
+                margin-top:0px;
             }
-            input[type="submit"] {
+            .help {
                 border: 0;
-                line-height: 1.5;
-                padding: 0 7px;
-                font-size: 13px;
-                text-align: center;
+                line-height: 3.5vw;
 
-                font-weight: bold;
+                padding: 0 1vw;
+                text-align: center;
+                font-weight:bold;
+                font-size: 2.2vw;
+
                 cursor: pointer;
-                box-shadow: inset 2px 2px 3px rgba(255, 255, 255, 0.6),
-                    inset -2px -2px 3px rgba(0, 0, 0, 0.6);
-                }
-            .c1 {
-                text-align: center;
-                padding-left: 0rem;
-                padding-right: 0rem;
-                padding-top: 0rem;
-                padding-bottom: 0rem;
-                height: auto;
+                background-color: rgb(255, 255, 255);
+                box-shadow: inset 1vw 1vw 1vw rgba(255, 255, 255, 0.6),
+                    inset -.3vw -.25vw .3vw rgba(0, 0, 0, 0.6);
+
+                border:19vw;
+
+                margin-left:.3vw;
+                margin-top: 4vw;
+                padding: 1vw;
+
+                width:67.9vw;
+                margin-inline: 1vw;
             }
-            .c2 {
-                text-align: center;
-                padding-left: 5px;
-                padding-right: 5px;
-                padding-top: 0;
-                padding-bottom: 0;
-                height: 1rem;
+            .vcc {
+                color: #242121;
                 font-weight: bold;
-                font-size: 17px;
-                width: 3rem;
-                height: 3rem;
-            }
-            .c3 {
+                font-family: Verdana;
+
                 text-align: center;
-                padding-left: 3px;
-                padding-right: 3px;
-                padding-top: 0rem;
-                padding-bottom: 0rem;
-                font-weight: bold;
-                height: auto;
-            }
-            .c4 {
-                width: 1rem;
-                padding-left: 1rem;
-                padding-right: 1rem;
-                padding-top: 0rem;
-                padding-bottom: 0rem;
-                font-weight: bold;
-                text-align: center;
-                width: 3rem;
-                height:2rem;
-            }
-            .c5 {
-                text-align: center;
-                padding-left: 1rem;
-                padding-right: 1.5rem;
-                padding-top: 0rem;
-                padding-bottom: 0rem;
-                font-size: smaller;
-                font-weight: bolder;
-                line-height: 1.5;
-                height: auto;
+                vertical-align: top;
+                padding-left: 1vw;
+                padding-top: -1vw;
+                font-size: 2.5vw;
+                grid-column:5;
+                grid-row:1/2;
             }
             .blink {
                 animation: blinker 1.9s linear infinite;
                 color: #a81a1a;
-                font-size: 25px;
                 font-weight: bold;
                 font-family: Verdana;
-                text-align: center;
-                font-weight: bold;
-                padding-left: 2rem;
-                height: 1rem;
+
+                padding-left: 1vw;
+                font-size: 2.5vw;
+                grid-column:5;
+                grid-row:1/2;
             }
             @keyframes blinker {
                 99% {
                     opacity: 0;
                 }
             }
-            ul.no-bullets {
-                list-style-type: none; /* Remove bullets */
-                padding: 0; /* Remove padding */
-                margin: 0; /* Remove margins */
-            }
             .sensors-grid{
                 display:grid;
-                gap: 1.5rem;
-                grid-template-columns:repeat(2, 1fr);
-                padding-block:2rem;
-                width: min(95%, 70rem);
-                margin-inline: auto;
-                font-size:21pt;
+                grid-template-columns:25vw 13vw 21vw 13vw;
+                grid-template-rows: 6vw 4vw 4vw 4vw 7vw;
+
+                box-sizing: border-box;
+                width: min(100%, 72.5vw);
+                min-width: 39vw;
+                height: 25vw;
+
+                margin-left: 5vw;
+                margin-right: 5vw;
+
+                background-color: #ced3c7;
+                justify-items: left;
+
+                padding: 1.3vw 2.3vw;
+
+                font-size:2.8vw;
+                font-weight: bold;
+            }
+            .status-grid{
+                display:grid;
+                grid-template-columns:7vw 18vw 15vw 17vw 8vw;
+                grid-template-rows: 4vw 9.5vw;
+
+                box-sizing: border-box;
+                width: min(100%, 72.5vw);
+                min-width: 39vw;
+                height: 16.5vw;
+
+                margin-left: 5vw;
+                margin-right: 5vw;
+
+                background-color: #ced3c7;
+                justify-items: center;
+
+                padding: 1vw 2.8vw;
+
+                font-size:2.5vw;
+                font-weight: bold;
+                text-align:center;
+            }
+            .time {
+                grid-column: 4 / 5;
+                color: blue;
+                font-size:2.0vw;
             }
         </style>
-        <input id="bt_help" type="button" onclick="f_help()" value="Help" title="Hide/Show WebSock Messages"/>
-        <title>Attic Fan Switch</title>
     </head>
-    <body>
-        <h2>ESP8266 Attic Fan Manager</h2>
-        <h3 id="atticEpochTime" style="font-size: 170%; color: rgb(0, 4, 255) ; font-weight: bold">
-                00:00:00
-        </h3>
-        <main class="sensors-grid">
-        <article>
-            <img src="https://img.icons8.com/color/30/000000/thermometer.png"/>
-            <span>Attic Temp:</span>
-            <span id="t1">%T1%</span>
-            <sup class="units">&deg;F</sup>
-        </article>
-        <article>
-            <img src="https://img.icons8.com/color/30/000000/thermometer.png"/>
-            <span>Inside Temp:</span>
-            <span id="t2">%T2%</span>
-            <sup class="units">&deg;F</sup>
-        </article>
-
-        <article>
-            <i class="fas fa-thermometer-half" style="color: #059e8a"></i>
-            <span>Outside Temp:</span>
-            <span id="t3">%T3%</span>
-            <sup class="units">&deg;F</sup>
-        </article>
-        <article>
-            <img src="https://img.icons8.com/external-justicon-blue-justicon/30/000000/external-barometer-science-justicon-blue-justicon.png"/>
-            <span>Barometer</span>
-            <span id="p3">%P3%</span>
-            <sup class="units">Hg</sup>
-        </article>
-
-        <article>
-            <i class="fas fa-tint" style="color:#00add6;"></i>
-            <span>Humidity:</span>
-            <span id="h3">%H3%</span>
-            <sup class="units">%</sup>&nbsp&nbsp
-        </article>
-        <article>
-            <img src="https://img.icons8.com/external-vitaliy-gorbachev-blue-vitaly-gorbachev/30/000000/external-thermometer-weather-vitaliy-gorbachev-blue-vitaly-gorbachev-5.png"/>
-            <span>Dew Point:</span>
-            <span id="dp3">%DP3%</span>
-            <sup class="units">&degF</sup>&nbsp&nbsp
-        </article>
-        <article>
-            <img src="https://img.icons8.com/office/30/000000/alps.png"/>
-            <span>Density Altitude:</span>
-            <span id="a3">%A3%</span>
-            <sup class="units">ft</sup>&nbsp&nbsp
-        </article>
+        <h3 style="margin: 1vw 5vw;width: 72.5vw;">ESP8266 Attic Fan Manager</h3>
+        <main class="sensors-grid" style="font-size:2.4vw;">
+            <div>
+                <span id="bt_help" class="help" role="submit"
+                    onclick="f_help()" value="Help" title="Hide/Show WebSock Messages">Help
+                </span>
+            </div>
+            <div id="clock" class="time"></div>
+            <div>
+                <i class="fas fa-thermometer-three-quarters" style="color: #ff0022; margin-left: 1.6vw;font-size: 2.3vw"></i>
+                <span title="Inside House Temp.  Dallas Sensor (DS18B20)">Inside Temp</span>
+            </div>
+            <div>
+                <span id="t2">%T2%</span>
+                <sup class="units">&deg;F</sup>
+            </div>
+            <div>
+                <i class="fas fa-thermometer-half" style="color: #1e68f3; margin-left: 1.4vw;font-size: 2.3vw"></i>
+                <span title="Remote Sensor Temperature. (BME280)" >Outside Temp</span>
+            </div>
+            <div>
+                <span id="t3">%T3%</span>
+                <sup class="units">&deg;F</sup>
+            </div>
+            <div>
+                <i class="fas fa-thermometer-full" style="color: #ff2002cc; margin-left: 1.6vw;font-size: 2.3vw;"></i>
+                <span title="Controller Box's Sensor Temp.  Dallas Sensor (DS18B20)">Attic Temp</span>
+            </div>
+            <div>
+                <span id="t1">%T1%</span>
+                <sup class="units">&deg;F</sup>
+            </div>
+            <div>
+                <i class="fas fa-tint" style="color:#00add6; margin-left: 1.2vw;font-size: 2.3vw"></i>
+                <span title="Relative Humidity.  Percent moisture possible at the indicated temperature.">Humidity</span>
+            </div>
+            <div>
+                <span id="h3">%H3%</span>
+                <sup class="units">%</sup>&nbsp&nbsp
+            </div>
+            <div><i class="fas fa-thermometer-empty" style="color:#00add6; margin-left: 1.5vw;font-size: 2.3vw"></i>
+                <span title="Temperature water comes out of the air.">Dew Point</span>
+            </div>
+            <div>
+                <span id="dp3">%DP3%</span>
+                <sup class="units">&degF</sup>&nbsp&nbsp
+            </div>
+            <div>
+                <i class="fas fa-tachometer-alt" style="color: #06b106; margin-left: .50vw; font-size:2.3vw;"></i>
+                <span title="Air pressure :  NOTE: Standard is 14.7 PSI at Sea Level. (29.92 in Hg)">Barometer</span>
+            </div>
+            <div>
+                <span id="p3">%P3%</span>
+                <sup class="units">Hg</sup>
+            </div>
+            <div>
+                <svg enable-background='new 0 0 58.422 40.639'height=2vw id=Layer_1 version=1.1 viewBox='0 0 58.422 40.639'width=4vw x=0px xml:space=preserve xmlns=http://www.w3.org/2000/svg xmlns:xlink=http://www.w3.org/1999/xlink y=0px>
+                    <g>
+                        <path d='M58.203,37.754l0.007-0.004L42.09,9.935l-0.001,0.001c-0.356-0.543-0.969-0.902-1.667-0.902
+                            c-0.655,0-1.231,0.32-1.595,0.808l-0.011-0.007l-0.039,0.067c-0.021,0.03-0.035,0.063-0.054,0.094L22.78,37.692l0.008,0.004
+                            c-0.149,0.28-0.242,0.594-0.242,0.934c0,1.102,0.894,1.995,1.994,1.995v0.015h31.888c1.101,0,1.994-0.893,1.994-1.994
+                            C58.422,38.323,58.339,38.024,58.203,37.754z'fill=#955BA5
+                        />
+                        <path d='M19.704,38.674l-0.013-0.004l13.544-23.522L25.13,1.156l-0.002,0.001C24.671,0.459,23.885,0,22.985,0
+                            c-0.84,0-1.582,0.41-2.051,1.038l-0.016-0.01L20.87,1.114c-0.025,0.039-0.046,0.082-0.068,0.124L0.299,36.851l0.013,0.004
+                            C0.117,37.215,0,37.62,0,38.059c0,1.412,1.147,2.565,2.565,2.565v0.015h16.989c-0.091-0.256-0.149-0.526-0.149-0.813
+                            C19.405,39.407,19.518,39.019,19.704,38.674z'fill=#955BA5
+                        />
+                    </g>
+                </svg>
+                <span title="Functional Altitude.  Altitude you feel & engines & planes feel.">Density Altitude</span>
+            </div>
+            <div>
+                <span id="a3">%A3%</span>
+                <sup class="units">ft</sup>&nbsp&nbsp
+            </div>
         </main>
-    
-    <table>
-        <th>
-            <tr style="font-weight: bold;">
-                <td class="c1"></td>
-                <td class="c2">Fan</td>
-                <td style="width: 10px;"></td>
-                <td class="c3">System</td>
-                <td class="c3">Fan On<br>Timer</td>
-                <td class="c4">Minutes</td>
-                <td class="blink" id="vcc0">Charge</td>
-            </tr>
-        </th>
-        <tr>
-            <td class="c1"></td>
-            <td class="c2" id="fanOn"
-                style=  "padding: 1 3px;
-                        border-radius: 30%;
-                        background-color: rgb(248, 113, 135);
-                        box-shadow: inset 2px 2px 3px rgba(255, 255, 255, 0.6),
-                    inset -2px -2px 3px rgba(0, 0, 0, 0.6);"
-            >OFF</td>
-            <td></td>
-            <td class="c3" id="system"
-                style="padding: 0 0px;
+        <main class="status-grid" style="background:yellow;">
+            <div style="width: 10vw;">Fan</div>
+            <div>System</div>
+            <div>Fan On</div>
+            <div>Minutes</div>
+            <div id="fanOn"
+                style= "padding: 3.3vw 1.2vw;
+                        border-radius: 25%;
+                        box-shadow: inset 2px 2px 3px rgba(153, 150, 150, .6),
+                        inset -2px -2px 3px rgba(0, 0, 0, 0.6);
+                        background-color: rgb(248, 113, 135);"
+                title="Indicator for showing whether the Fan is ON or OFF"
+            >OFF</div>
+            <div id="system"
+                style=" padding: 3.2vw 1.0vw;
+                        text-transform: capitalize;
                         border-radius: 50%;
                         font-weight: bold;
-                        box-shadow: inset 2px 2px 3px rgba(255, 255, 255, 0.6),
-                    inset -2px -2px 3px rgba(0, 0, 0, 0.6);
-                    cursor: pointer;"
-                onclick="f_system('button', this.innerHTML=='STOP')"
-                updated="0"
+                        box-shadow: inset 2px 2px 3px rgba(153, 150, 150, .6),
+                        inset -2px -2px 3px rgba(0, 0, 0, 0.6);
+                        cursor: pointer;"
+                onclick="f_system('main')"
+                role="submit"
 
                 title="Enable / Disable Fan Control System"
-            >Enable</td>
-            <td class="c4">
-                <input
-                type="button"
-                value="+ 5mins"
-                onclick="f_fanTimer('button', +5)"
-                title="add 5 minutes to fan on override"
-            />
-            <input
-                type="button"
-                value="- 5mins"
-                onclick="f_fanTimer('button', -5)"
-                title="remove 5 minutes from fan on override"
-                style="margin-top: 5px;width: 100%;"
-            />
-            </td>
-            <td class="c5" style="vertical-align:top">
-                <label id="fanOnMs" updated="0">0</label>
-                <input
-                    type="submit"
-                    onclick="f_fanTimer('submit' ,-1)"
-                    title="***OVERRIDE***&#x0a;  Turn on fan for&#x0a; specified minutes."
-                    style="margin-top: 10px; height: 25px; ;background: rgb(57, 216, 110)"
-                />
-            </td>
-            <td class="blink" id="vcc1">Remote Battery<br>
-                <span id="vcc" class="units">3.00</span>
-                <sup class="units" id="vcc2">vcc</sup>
-            </td>
-    </tr>
-        <tr>
-            <td class="c1"></td>
-            <td class="c2"></td>
-            <td></td>
-            <td class="c3"></td>
-            <td class="c4">
-            </td>
-            <td class="c5">
-            </td>
-        </tr>
-    </table>
-        <br/><br/>
-        <div id="help" hidden="true">
-            <input
-                value="Set Controller Limits"
-                type="button"
-                onclick="f_redirect('settings')"
-                style="background: rgb(155, 219, 149)"
-            />
-            <input
-                value="Update WiFi settings"
-                type="button"
-                onclick="f_redirect('wifi')"
-                style="background: orange;"
-            />
-            <input
-                value="Firmware / Startup Settings"
-                type="button"
-                onclick="f_redirect('update')"
-                style="background:rgb(249, 253, 0);color: red;"
-            />
-            <br><br>
-            <p id="json1" style="font-weight: normal; font-size: 12pt"></p>
-            <p id="json2" style="font-weight: normal; font-size: 12pt"></p>
-        </div>
-    </body>
+                >Enable
+            </div>
+            <div>
+                <span
+                    class="help"
+                    style="width: 4vw;padding:0.8vw;"
+                    role="submit"
+                    onclick="f_fanTimer('main', +5)"
+                    title="add 5 minutes to fan on override"
+                    >+ 5mins
+                </span><br><br>
+                  <span
+                    class="help"
+                    style="width: 4vw;padding:.7vw;"
+                    role="submit"
+                    onclick="f_fanTimer('main', -5)"
+                    title="remove 5 minutes from fan on override"
+                    >-- 5mins
+                </span>
+            </div>
+            <div>
+                <a id="fanOnMs">0</a><br><br>
+            </div>
+            <div class="vcc" id="battery" >
+                <span id="vcc0" name="bat" hidden>Charge<br>Remote<br>Battery<br></span>
+                <span id="vcc1" name="bat" hidden style="font-size: 1.5vw;">3.0</span>
+    <sup                        name="bat" hidden style="font-size: 1.5vw;">vcc</sup>
+            </div>
+        </main>
+        <main>
+            <!-- comment: NOTES -->
+            <div id="help" hidden="true">
+                <p class="settings-grid">
+                    <span class="help"
+                        value="Controller Limits"
+                        type="button"
+                        onclick="f_redirect('settings')"
+                        style="margin-left:14vw;background: rgb(155, 219, 149)"
+                        title="Web Page for setting Fan ON/OFF Parameters"
+                        >Controller Limits
+                    </span>
+                    <span class="help"
+                        value="WiFi Settings"
+                        type="button"
+                        onclick="f_redirect('wifi')"
+                        style="background: orange;"
+                        title="Web Page for setting WiFi SSID/PWD & IP"
+                        >WiFi Settings
+                    </span>
+                    <span class="help"
+                        value="Firmware"
+                        type="button"
+                        onclick="f_redirect('update')"
+                        style="background:rgb(249, 253, 0);color: red;"
+                        title="Web Page for updating firmware"
+                        >Firmware
+                    </span>
+                    <details><hr>JSON Inbound
+                        <aside id="json1" style="background-color:white;font-weight: normal; font-size: 1.5vw; word-wrap:  break-word;">{"src":"mcuMain","what":"in bound"}</aside>
+                        <br>JSON Outbound
+                        <aside id="json2" style="background-color:white;font-weight: normal; font-size: 1.5vw; word-wrap:  break-word;">{"src":"main","what":"out bound"}</aside>
+                        <hr>
+                    </details>
+                </p>
+            </div>
+        </main>
     <script language="javascript" type="text/javascript">
-        let webSock = new WebSocket("ws://" + window.location.hostname + ":80?json=1");
+        // Logic: Minutes is everything. i.e. 0 minutes & system is off >0 mins & system is on
+        window.onload = function() {setInterval( f_clock, 1000);lastWebSock = Date.now();}
+        let webSock = new WebSocket("ws://" + window.location.hostname + ":80");
         webSock.onopen = function(){ 
-            let json = {json:atticEpochTime,atticEpochTime:0};
-            json.atticEpochTime = Math.floor(Date.now() / 1000);
+            let json = {src:"main",what:"refresh"};
             webSock.send(JSON.stringify(json));
         };
         webSock.onmessage = function(evt) {f_webSockOnMessage(evt);};
         webSock.onerror = function(evt) {console.warn(evt);};
-        webSock.onclose = function(){ console.log("webSock Connection Closed.")};
+        webSock.onclose = function(){};
+        let sleep_s = Number(30); // no WebSock inbound timeout; send refresh signal
+        let lastDataRefresh = Number(1);
+        let lastPageRefresh = Number(1);
+        
 
-        const empty          = 0  // 0b00000000
-            , readings       = 1  // 0b00000001
-            , settings       = 2  // 0b00000010
-            , net            = 4  // 0b00000100
-            , atticEpochTime = 9  // 0b00001001
-            , fanOnMs        = 17 // 0b00010001
-            , systemEnabled  = 33 // 0b00100001
-            , ping_readings  = 65 // 0b01000001
-            , ping_settings  = 66 // 0b01000010
-            , ping_network   = 68 // 0b01000100
-
-        ;
-
+        const ALTITUDE = Number(394);
         let j = {
-              json: readings
-            , t1: 98.60
-            , t2: 82.33
-            , t3: 87.30
-            , p3: 29.92
-            , h3: 88
-            , dp3: 75
-            , a3: 994
-            , vcc: 2.85
-            , atticEpochTime: 1637713842
+              src: "main"
+            , what: "refresh" // system, timer
+            , t1: 75.60
+            , t2: 78.33
+            , t3: 71.40
+            , p3: 99722
+            , h3: 8823
+            , vcc: 2850
             , fanOn: 1
             , fanOnMs: 138000
             , systemEnabled: 1
@@ -328,37 +350,54 @@ const char index_html[] PROGMEM =  R"=====(
             if (typeof evt.data === "string"){
                 let s = evt.data;
                 j = JSON.parse(s);
+                if(j.src!="mcuMain")return;
+                lastWebSock = Date.now();
+                document.getElementById("json1").innerHTML = s;
                 for (let key in j){
-                    document.getElementById("json2").innerHTML = s;
                     switch (key){
-                        case "json": continue;
+                        case "src": continue;
+                          break;
+                        case "t1":
+                            document.getElementById(key).innerHTML = j.t1?j.t1.toFixed(1):"n/a";
+                          break;
+                        case "t2":
+                            document.getElementById(key).innerHTML = j.t2?j.t2.toFixed(1):"n/a";
+                          break;
+                        case "t3":
+                            document.getElementById(key).innerHTML = j.t3?j.t3.toFixed(1):"n/a";
+                          break;
+                        case "p3":
+                            if(j.p3 == 0){
+                                document.getElementById(key).innerHTML = "n/a";
+                                document.getElementById("a3").innerHTML = "n/a";
+                                break;
+                            }
+                            document.getElementById(key).innerHTML = Pa2Hg(j.p3/100.0).toFixed(2);
+                            document.getElementById("a3").innerHTML = f_densityAlt(j.t3, j.p3);
+                          break;
+                        case "h3":
+                            if(j.h3 == 0){
+                                document.getElementById("h3").innerHTML = "n/a";
+                                document.getElementById("dp3").innerHTML = "n/a";
+                                break;
+                            }
+                            document.getElementById("h3").innerHTML = (j.h3/100).toFixed(1);
+                            document.getElementById("dp3").innerHTML = c2f( f_dewPoint( j.t3, j.h3/100) ).toFixed(1);
                           break;
                         case "vcc":
                             f_battery(j[key]);
-                          break;
-                        case "atticEpochTime":
-                            const options = { hourCycle: 'h24', year: 'numeric', month: '2-digit', day: '2-digit'
-                                            , hour: '2-digit', minute: '2-digit', second: '2-digit', timeZoneName: 'short'
-                                  };
-                            const dt = new Date();
-                            document.getElementById("atticEpochTime").innerHTML
-                                = dt.toLocaleTimeString("en-US", options);
-                                j[key]= dt.valueOf()/1000;
                           break;
                         case "fanOn":
                             f_fan(j[key]);
                           break;
                         case "fanOnMs":
-                                f_fanTimer('ws', f_ms2min(j[key]));
+                                f_fanTimer('mcuMain', f_ms2min(j[key]));
                           break;
-                        case "dp3":
-                            document.getElementById(key).innerHTML = j.h3?j.dp3:"n/a";
+                          case "systemEnabled":
+                            f_system(j.src);
                           break;
-                        case "a3":
-                            document.getElementById(key).innerHTML = j.h3?j.a3:"n/a";
-                          break;
-                        case "systemEnabled":
-                            f_system("ws", j.systemEnabled);
+                          case "sleep_us":  // refresh data thrice per remote's sleep
+                            sleep_s = j[key]/1000000;
                           break;
                         default:
                             document.getElementById(key).innerHTML =j[key];
@@ -366,72 +405,69 @@ const char index_html[] PROGMEM =  R"=====(
                 }
             }
         }
-        function gHbi(e){return(document.getElementById(e).innerHTML);} // return innerHTML by id
-        function sHbi(e,v){document.getElementById(e).innerHTML=v;}     // set value by id
-        function gVAbi(e,a){return(document.getElementById(e).getAttribute("a"));} // get value by id
-        function sVAbi(e,a,v){document.getElementById(e).setAttribute(a,v);}     // set value by id
+        function f_dewPoint(t, h){return(Math.round(f2c(t)-((100-h)/5)));} // t:celsius
+        function f_densityAlt(t, p){
+            tempC=f2c(t);pHg=Pa2Hg(p/100);
+            PA=((29.92-pHg)*1000)+ALTITUDE;
+            sTemp=15-(.002*PA);
+            DA = PA + (118.8 * (tempC-sTemp));
+            return Math.round(DA);
+        }
+        function Hg2Mb(p){return(33.86389*p);}
+        function f2k(f){return((f-32)/1.80 + 273.15);}
+        function f2c(f){return((f-32)/1.80)}
+        function c2f(c){return(1.80*c+32)}
+        function Pa2Hg(p){return(p*0.029529980164712);}
         function f_ms2min(ms){
             const minutes = Math.floor(ms/60000);
             const tenths  = Math.round(((ms/60000)-minutes)*10)/10;
             return(minutes+tenths);
         }
         function f_redirect(where) {window.location.href = "/" + where;}
-        // need to allow json updates unless +5 mins or -5min have been pressed
-        function f_fanTimer(){
-            let who = arguments[0];
-            let value = Number(arguments[1]);
-            const doc = document.getElementById("fanOnMs");
-            if(who == "ws" && doc.getAttribute("updated") == "1")return;
-            if(who == "ws"){doc.innerHTML=Number(value);return;}
-            else doc.setAttribute("updated", "1");
-
-            if(value === -1){
-                jsn = {
-                    json : fanOnMs
-                  , fanOnMs : doc.innerHTML*60*1000
-                };
-                webSock.send(JSON.stringify(jsn));
-                doc.setAttribute("updated", "0");
-                document.getElementById("json1").innerHTML = JSON.stringify(jsn);
-                return;
+        function f_fanTimer(src, val){ // p1 : src
+            if(src=="main"){
+                j.fanOnMs+=(val*60*1000);
+                if(j.fanOnMs<0)j.fanOnMs=0;
+                let j2 = {"src":"main","what":"timer","fanOnMs":0};
+                j2.fanOnMs = j.fanOnMs;
+                webSock.send(JSON.stringify(j2));
+                document.getElementById("json2").innerHTML = JSON.stringify(j2);
             }
-            let val = Number(doc.innerHTML) + Number(value);
-            if(val<0)val=0;
-            doc.innerHTML = val;
-    }
-        function f_system() {
-            let who = arguments[0];
-            let value = Number(arguments[1]);
-
+            if(src == "mcuMain")document.getElementById("fanOnMs").innerHTML=val;
+        }
+        function f_system(p1) {
+            // src: mcuMain or main
             const system = document.getElementById("system");
-            let updated = system.getAttribute("updated");
-            if(who=="ws" && updated=="1")return;
-            if(who=="button"){
-                value=!value;
-                system.setAttribute("updated", "1");
-            }
-            system.style.backgroundColor = value ? "rgb(250, 0, 0)" : "rgb(0, 250, 0)";
-            system.innerHTML = value ? "STOP" :"Enable" ;
+            if(p1=="main"){
+                if(j.systemEnabled)j.systemEnabled=0;
+                else j.systemEnabled=1;
 
-            if(who=="button"){
-                let jsn = {
-                    json : systemEnabled
-                  , systemEnabled : value?1:0
-                };
-                document.getElementById("json1").innerHTML = JSON.stringify(jsn);
-                webSock.send(JSON.stringify(jsn));
-                system.setAttribute("updated", "0");
+                let j2={"src":"main","what":"system","systemEnabled":0};
+                j2.systemEnabled = j.systemEnabled;
+                webSock.send(JSON.stringify(j2));
+                document.getElementById("json2").innerHTML = JSON.stringify(j2);
+            }
+            if(p1=="mcuMain"){
+                system.style.backgroundColor = j.systemEnabled ? "rgb(250, 0, 0)" : "rgb(0, 250, 0)";
+                system.innerHTML = j.systemEnabled ? "STOP" :"Enable" ;
             }
         }
         function f_battery(batt){
-            let blink = document.getElementsByClassName("blink");
-            for(i=0;i<blink.length;i++){
-                if(batt<3.00)
-                    blink[i].removeAttribute("hidden");
-                else
-                    blink[i].setAttribute("hidden", true);
+            const battery = document.getElementById("battery");
+            let elements = document.getElementsByName("bat");
+            elements.forEach(function(index){
+                if(batt)index.removeAttribute("hidden");
+                else index.setAttribute("hidden", true);
+            })
+           if(batt<3000){ // HY7333 outputs ~3.3; if vcc drops too low then
+                battery.className = "blink";
+                var bat = "Charge&nbsp<br>Remote<br>Battery<br>";
+                }else{
+                battery.className = "vcc";
+                bat = "Remote<br>Battery<br>";
             }
-            document.getElementById("vcc").innerHTML = batt;
+            document.getElementById("vcc0").innerHTML = bat;
+            document.getElementById("vcc1").innerHTML = (batt/1000).toFixed(2);
         }
         function f_fan(){
             fan = Number(arguments[0]);
@@ -443,17 +479,36 @@ const char index_html[] PROGMEM =  R"=====(
         let f_help = () => {
             if (document.getElementById("help").getAttribute("hidden")){
                 document.getElementById("help").removeAttribute("hidden");
-                document.getElementById("bt_help").value = "un-Help";
+                document.getElementById("bt_help").innerHTML = "Un-Help";
             }else{
                 document.getElementById("help").setAttribute("hidden", true);
-                document.getElementById("bt_help").value = "Help";
+                document.getElementById("bt_help").innerHTML = "Help";
             }
         };
-    </script>
+        function f_clock(){
+            const clock = document.getElementById("clock");
+            d = new Date();
+            clock.innerHTML = d.toLocaleDateString() + "<br>"
+            + d.toLocaleTimeString(
+                'en-US', {
+                    timeZone:'America/Los_Angeles'
+                , hour12:false
+                , hour:'numeric'
+                , minute:'numeric'
+                , second:'numeric'
+                }
+            );
+        }
+        function stringToFloat(s){
+            if (s.search(/^\s*(\+|\-)?\d*(\.\d*)?\s*$/)==-1)
+                throw new Error("'"+s+"' is not a valid number", "'"+s+"' is not a valid number");
+            return parseFloat(s);
+        }
+</script>
 </html>
 )=====";
 
-const char settings_html[] PROGMEM =  R"=====(
+  const char SETTINGS[] PROGMEM =  R"=====(
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -473,241 +528,251 @@ const char settings_html[] PROGMEM =  R"=====(
             font-family: Calibri, Myriad;
             text-align: center;
         }
-        .a {
-            font: italic small-caps bold 12px/30px Georgia, serif;
-        }
-        table.calibrate th {
+        table {
             text-align: center;
-            width: 23pt;
-            border-bottom: 2px solid rgb(8, 8, 8);
-        }
-        table.calibrate {
-            font-size: smaller;
-            margin-left: 10px;
+            margin-left: 5px;
             margin-right: auto;
-            width: 300px;
+            width: 350px;
             border: 1px solid black;
             border-style: solid;
+            font-weight: bold;
+            column-width: 15vw;
         }
-        table.calibrate caption {
-            background-color: #56970c;
-            color: #fff;
-            font-size: large;
+        table td {
+            background-color:#f6f6ff;
+            color: black;
+            border-style: solid;
+            border-width: 1px;
+        }
+        table caption {
+            border-width: 3px;
+            border-style: solid;
+            border-color: #bdc7bd #a2a5a3;
+
+            font-size:medium;
             font-weight: bold;
             letter-spacing: 0.3em;
         }
-        table.calibrate thead th {
-            padding: 3px;
-            background-color: #98e99d;
+        table.calibrate caption {
+            background-color: #0d09ff;
+            color: #fff;
+        }
+        table thead th {
             font-size: 16px;
-            border-width: 1px;
+            border-width: 6px;
             border-style: solid;
-            border-color: #f79646 #ccc;
         }
-        table.calibrate td {
-            font-size: 12px;
-            font-weight: bold;
-            text-align: center;
-            padding: 2px;
-            background-color: shite;
-            color: black;
-            font-weight: bold;
-            min-width: 6.5em;
-            max-width: 6em;
-
-        }
-        table.override th {
-            text-align: center;
-        }
-        table.override {
-            margin-left: 5px;
-            margin-right: auto;
-            width: 650px;
-            border: 1px solid black;
-            border-style: solid;
+        table.calibrate thead th {
+            background-color: #98c2e9;
+            border-color: #4666f7 #9cabf0;
         }
         table.override caption {
             background-color: #f74646;
             color: #fff;
-            font-size: large;
-            font-weight: bold;
-            letter-spacing: 0.3em;
         }
         table.override thead th {
-            padding: 3px;
             background-color: #f8d3de;
-            font-size: 16px;
-            border-width: 1px;
-            border-style: solid;
-            border-color: #f79646 #ccc;
-            column-width: 7in;
+            border-color: #f79646 rgb(247, 191, 87);
         }
-        table.override td {
-            font-size: 12px;
-            font-weight: bold;
-            text-align: center;
-            padding: 2px;
-            background-color:#f6f6ff;
-            color: black;
-            font-weight: bold;
-            column-width: 1.2in;
+        .help {
+                font-size: 1.5vw;
+                text-align: center;
+                font-weight: bold;
+
+                background-color: rgb(248, 241, 241);
+                box-shadow: inset 1vw 1vw 1vw rgba(225, 238, 225, 0.6),
+                    inset -.3vw -.25vw .3vw rgba(16, 17, 16, 0.6);
+
+                padding: .3vw .7vw;
+
+                height:2.5vw;
+                width:5%;
+                cursor: pointer;
+            }
+        .fanOn{
+                text-align: center;
+                background-color: rgb(248, 241, 241);
+                box-shadow: inset 1vw 1vw 1vw rgba(225, 238, 225, 0.6),
+                    inset -.3vw -.25vw .3vw rgba(16, 17, 16, 0.6);
+
+                height:2.0vw;
+                padding:.1vw;
+                background-color:yellow;
+                font-weight: bolder;
+                font-size: 18px;
         }
     </style>
-    <body style="text-align: left">
-        <input id="bt_help" type="button" onclick="f_help()" value="Help" />
+    <body id="body" style="text-align: left">
+        <span id="bt_help" class="help" role="submit" onclick="f_help()" >Help</span>
         <hr />
         <b><i>Note: Values are updated every "Attic Sensor Check-in Seconds". All values are in &degF</i></b>
-        <table class="calibrate" id="settings" updated="false">
+        <table class="calibrate" id="settings">
             <caption>
-                Set Temp & Humidity Bounds
+                Temp & Humidity<br>ON/OFF Limits
             </caption>
             <thead>
                 <tr>
                     <th>*Inside<br>Off &degf</th>
-                    <th>IOD on Value*</th>
-                    <th>IOD off Value*</th>
-                    <th>Fan on Attic* Temp&degf</th>
-                    <th>Fan off Attic Temp&degf</th>
-                    <th>AOD on Value</th>
-                    <th>AOD off Value</th>
-                    <th>AID on Value</th>
-                    <th>AID off Value</th>
+                    <th>Attic ON*<br>Absolute Temp&degf</th>
+                    <th>Attic off<br>Temp&degf</th>
+                </tr></thead>
+                <tbody>
+                    <tr>
+                        <td><input id="inside_off" type="number" name="limit" min="0" max="120" onclick()="updating=1"/></td>
+                        <td><input id="attic_on"   type="number" name="limit" min="0" max="120"/></td>
+                        <td><input id="attic_off"  type="number" name="limit" min="0" max="120"/></td>
+                    </tr>
+                </tbody>
+                <thead><tr>
+                    <th>IOD on<br>Value*</th>
+                    <th>AOD on<br>Value</th>
+                    <th>AID on<br>Value</th>
+                </tr></thead>
+                <tbody>
+                    <tr>
+                        <td><input id="IOD_on" type="number" name="limit" min="0" max="120"/></td>
+                        <td><input id="AOD_on" type="number" name="limit" min="0" max="120"/></td>
+                        <td><input id="AID_on" type="number" name="limit" min="0" max="120"/></td>
+                    </tr>
+                </tbody>
+    
+
+                <thead><tr>
+                    <th>IOD off<br>Value*</th>
+                    <th>AOD off<br>Value</th>
+                    <th>AID off<br>Value</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
-                    <td><input id="inside_off" type="number" name="limit" min="0" max="120"/></td>
-                    <td><input id="IOD_on"     type="number" name="limit" min="0" max="120"/></td>
-                    <td><input id="IOD_off"    type="number" name="limit" min="0" max="120"/></td>
-                    <td><input id="attic_on"   type="number" name="limit" min="0" max="120"/></td>
-                    <td><input id="attic_off"  type="number" name="limit" min="0" max="120"/></td>
-                    <td><input id="AOD_on"     type="number" name="limit" min="0" max="120"/></td>
-                    <td><input id="AOD_off"    type="number" name="limit" min="0" max="120"/></td>
-                    <td><input id="AID_on"     type="number" name="limit" min="0" max="120"/></td>
-                    <td><input id="AID_off"    type="number" name="limit" min="0" max="120"/></td>
+                    <td><input id="IOD_off" type="number" name="limit" min="0" max="120"/></td>
+                    <td><input id="AOD_off" type="number" name="limit" min="0" max="120"/></td>
+                    <td><input id="AID_off" type="number" name="limit" min="0" max="120"/></td>
                 </tr>
             </tbody>
         </table>
         <p style=" font: 14px/17px Monospace ;">
-            <span style=" font: bold 17px/25px Monospace ;">Values to trigger the Fan ON/OFF</span><br>
-            AID: <b><i>Difference</i></b> of Attic minus the Inside temp in degrees fahrenheit <a style="font-size: small;">(A-I)&degf</a><br>
-            AOD: <b><i>Difference</i></b> of Attic minus the Outside temp in degrees fahrenheit <a style="font-size: small;">(A-O)&degf</a><br>
-            IOD: <b><i>Difference</i></b> of Inside minus the Outside temp in degrees fahrenheit <a style="font-size: small;">(I-O)&degf</a><br>
+            <span style=" font: bold 18px/20px Monospace ;">Values to trigger the Fan ON/OFF</span><br>
+            <span style="font-size: 8pt;">
+            AID: Attic minus Inside in degrees fahrenheit &degf<br>
+            AOD: Attic minus Outside in degrees fahrenheit &degf<br>
+            IOD: Inside minus Outside in degrees fahrenheit &degf<br>
+            Attic off: Less than &degf Fan OFF. Unless on setting overrides.
+        </span>
         </p>
         <p style="font-weight: bold; font-size: large">
-            NOTE: Value of zero or empty causes the setting to be ignored
+            NOTE: Zero or Empty settings are ignored.
         </p>
-        <hr />
-        <br />
-
+        <hr/>
+        <br/>
         <table class="override">
-            <caption>
-                Set Override Values
-            </caption>
+            <caption>Set Override Values</caption>
             <thead>
-                <tr>
-                    <th>Fan System<br>Enabled</th>
-                    <th>Attic Sensor Check-In Seconds</th>
-                    <th>Remotes Sensor Check-In Seconds</th>
-                    <th>
-                        <input id="refresh" type="submit" value="Refresh" onclick="f_refresh()"
-                                style=" margin: 1px; color: black; background-color: yellow; font-weight: bold;"/>
-                        <input id="Submit" type="submit" value="Submit" onclick="f_submit()"
-                                style="margin: 2px; color: black; background-color: rgb(248, 138, 171); font-weight: bold;"
-                        />
+              <tr>
+                <th>Fan System<br>Enabled</th>
+                <th>Attic Sensor<br>Check-In Seconds</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <a id="systemEnabled" enabled="1"></a>
+                  <input id="systemEnabled_true"  type="radio" name="systemEnabled" value="1" onclick="f_systemEnabled('radio', this.value)" autocomplete="off" style="align-items: center;display:inline-flex" checked>ON
+                  <input id="systemEnabled_false" type="radio" name="systemEnabled" value="0" onclick="f_systemEnabled('radio', this.value)" autocomplete="off" style="align-items: center;display:inline-flex">OFF
+                </td>
+                <td><input id="delayMs"     type="number" name="limit" min="0" max="600"/></td>
+              </tr>
+            </tbody>
+            <thead>
+              <tr>
+                <th>Remote Sensor<br>Check-In Seconds</th>
+                <th>
+                  <input id="refresh" type="submit" value="Refresh" onclick="f_refresh()" title="Reset all values with those on the server."
+                         style=" margin: 1px; color: black; background-color: yellow; font-weight: bold;"/>
+                  <input id="Submit" type="submit" value="Submit" onclick="f_submit()"
+                         style="margin: 2px; color: black; background-color: rgb(248, 138, 171); font-weight: bold;"/>
                     </th>
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td>
-                        <a id="systemEnabled" updated="false" enabled="1"></a>
-                        <input id="systemEnabled_true"  type="radio" name="systemEnabled" value="1" onclick="f_systemEnabled('radio', this.value)" autocomplete="off" style="align-items: center;display:inline-flex" checked>ON
-                        <input id="systemEnabled_false" type="radio" name="systemEnabled" value="0" onclick="f_systemEnabled('radio', this.value)" autocomplete="off" style="align-items: center;display:inline-flex">OFF
-                    </td>
-                    <td><input id="delayMs"     type="number" name="limit" min="0" max="600"/></td>
-                    <td><input id="remoteSleepSeconds" type="number" name="limit" min="0" max="3600"/></td>
-                    <td id="fanOn" style="font-size: 12px; font-size: 18px;">Fan is On</td>
-                </tr>
-            </tbody>
+                <td><input id="sleep_us" type="number" name="limit"/></td>
+                <td id="fanOn" class="fanOn">Fan is On</td>
+</tbody>
         </table>
-        <p style="font-weight: bold; font-size: large">
-            NOTE: Value of zero or empty causes the setting to be ignored<br>
-            Refresh: Resets all values with those already in play. Refresh happens every "Attic Sensor Check-In Minutes"
-        </p>
-        <hr /><br />
-        <div id="help" hidden="true">
-            <p id="json1" style="font-weight: normal; font-size: 12pt">test</p>
-            <p id="json2" style="font-weight: normal; font-size: 12pt">test:</p>
+        <a id="updated" hidden style="padding: 1px 1px 1px 1px;font-size: 17px; background-color: green">UPDATED</a>
+        <a style="font-weight: bold; font-size: 10pt">
+            <br>
+            A refresh occurs every "Attic Sensor Check-In Minutes"
+        </a>
+        <hr /><a>
+            <input type="submit" onclick="history.back()" value="Home">
+        </a><br>
+        <div id="help" hidden="true" style="font-weight: bold;font-size: 13pt; word-wrap: break-word;">
+            <a>JSON Inbound</a><br><a id="json1"></a>
+            <br><br>
+            <a>JSON Outbound</a><br><a id="json2"></a>
         </div>
     </body>
 
     <script language="javascript" type="text/javascript">
 
-        let webSock = new WebSocket("ws://" + window.location.hostname + ":80?json=2");
-        webSock.onopen = function (evt) {webSock.send('{"json":' + ping_settings + '}');};
-        webSock.onmessage = function (evt) {f_webSockOnMessage(evt);};
-        webSock.onerror = function (evt) {};
+    let webSock = new WebSocket("ws://" + window.location.hostname + ":80");
+    webSock.onopen = function (evt) {webSock.send('{"src":"settings","what":"refresh"}');}
+    webSock.onmessage = function (evt) {f_webSockOnMessage(evt);}
+    webSock.onerror = function (evt) {}
+    document.getElementById("body").onchange = function() {updating=1;}
 
-        const empty          = 0  // 0b00000000
-            , readings       = 1  // 0b00000001
-            , settings       = 2  // 0b00000010
-            , net            = 4  // 0b00000100
-            , atticEpochTime = 9  // 0b00001001
-            , fanOnMs        = 17 // 0b00010001
-            , systemEnabled  = 33 // 0b00100001
-            , ping_readings  = 65 // 0b01000001
-            , ping_settings  = 66 // 0b01000010
-            , ping_network   = 68 // 0b01000100
+    let updating = 0;
 
-        ;
-
-        let j = {
-              json : settings
-            , fanOn : 0
-            , fanOnMs : 318000
-            , attic_on : 150.0
-            , attic_off : 0.0
-            , AID_on : 0
-            , AID_off : 0
-            , AOD_on : 0
-            , AOD_off : 0
-            , IOD_on : 7
-            , IOD_off : 3
-            , inside_off : 70
-            , systemEnabled : 1
-            , delayMs : 360000
-            , remoteSleepSeconds : 120000000
-        };
-
+    let settings = {
+            src : "settings"
+        , fanOn : 0
+        , attic_on : 150.0
+        , attic_off : 0.0
+        , AID_on : 0
+        , AID_off : 0
+        , AOD_on : 0
+        , AOD_off : 0
+        , IOD_on : 7
+        , IOD_off : 3
+        , inside_off : 70
+        , systemEnabled : 1
+        , delayMs : 360000
+        , sleep_us : Number(2*1e6+2)
+        , updated : 0
+    };
     function f_webSockOnMessage(evt) {
         if (typeof evt.data === "string") {
-            s=evt.data;
-            document.getElementById("json2").innerHTML = s;
-            j = JSON.parse(s);
-            if(j.json != settings)return;
-            for (let key in j){
-                if(key == "json" || key == "fanOnMs")continue;
+            r = JSON.parse(evt.data);
+            if(r.src != "mcuSettings")return;
+            settings=r;console.log(settings);
+            if(updating ^ settings.updated)return; // ...updated == bool return from mcu save of the struct.
+            document.getElementById("json1").innerHTML = JSON.stringify(settings);
+            for (let key in settings){
+                if(key == "src" || key == "what")continue;
                 dv = document.getElementById(key);
-                    if(dv.value=="" || dv.value==null){
+                if(dv.value=="" || dv.value==null){
                     switch (key){
+                        case "updated":
+                            f_updated(settings.updated);  // set the Green Updated Flag On/Off
+                            updating ^= settings.updated; // if this is an "updated mcu return" we are done with the last local update
+                          break;
                         case "fanOn":
                             doc = document.getElementById("fanOn");
-                            doc.innerHTML = j.fanOn&j.systemEnabled?"Fan is ON":"Fan is OFF";
-                            doc.style.backgroundColor = j.fanOn&j.systemEnabled?"#98e99d":"#ff0953";
+                            doc.innerHTML = settings.fanOn&settings.systemEnabled?"Fan is ON":"Fan is OFF";
+                            doc.style.backgroundColor = settings.fanOn&settings.systemEnabled?"#03c04A":"red";
                           break;
                         case "delayMs":
-                            dv.value = j.delayMs/(1000);break;// milliseconds to Seconds
+                            dv.value = settings.delayMs/(1000);break;// milliseconds to Seconds
                           break;
-                        case "systemEnabled":
-                            if(document.getElementById("systemEnabled").getAttribute("updated")=='0')
-                                f_systemEnabled(j.systemEnabled, "ws");
+                          case "systemEnabled":
+                              f_systemEnabled("mcuMain", settings.systemEnabled);
                           break;
-                        case "fanOnMs":
-                            f_fanTimer(f_ms2min(j.fanOnMs));
+                          case "sleep_us":
+                              dv.value = Math.round(settings[key]/1e6);
                           break;
                         default :
-                            dv.value = j[key];
+                            dv.value = settings[key];
                     }
                 }
             }
@@ -720,178 +785,226 @@ const char settings_html[] PROGMEM =  R"=====(
         return(minutes+tenths);
     }
     function f_submit() {
-        j.json=settings;
-        for (let key in j) {
-            if(key == "json" || key == "fanOn")continue;
+        settings.src=settings;
+        for (let key in settings){
+            if(key == "src" || key == "what" || key == "fanOn")continue;
             let dv = document.getElementById(key);
             switch (key) {
                 case "delayMs":
-                    j[key] = dv.value * 1000; // milliseconds to seconds
-                  break;
-                case "fanOnMs":
-                    j.fanOnMs = dv.value * 1000 * 60; // milliseconds to seconds to minutes
+                    settings[key] = dv.value * 1e3; // milliseconds to seconds
                   break;
                 case "systemEnabled":
-                     j[key] = dv.getAttribute("enabled")=="true"?1:0;
-                     dv.setAttribute("updated", "false");
+                     settings[key] = dv.getAttribute("enabled")==1?1:0;
+                     dv.setAttribute("updated", "0");
                    break;
+                case "sleep_us":
+                    settings[key] = Number(dv.value * 1e6);
+                  break;
                 default:
-                    j[key] = dv.value;
+                    settings[key] = dv.value;
             }
         }
-        document.getElementById("json1").innerHTML=JSON.stringify(j);
-        webSock.send(JSON.stringify(j));
-        f_refresh();
+        settings.src = "settings"; settings.what = "submit"; settings.updated=updating;
+        document.getElementById("json2").innerHTML=JSON.stringify(settings);
+        webSock.send(JSON.stringify(settings));
     }
     function f_refresh() {
         const x = document.getElementsByName("limit");
         for (let i = 0; i < x.length; i++) x[i].value = null;
-        document.getElementById("systemEnabled").setAttribute("updated", "false");
-        document.getElementById("settings").setAttribute("updated","false");
-        document.getElementById("fanOn").innerHTML ="";
-        document.getElementById("fanOn").style.backgroundColor = "#ffffff";
-        webSock.send('{"json":' + ping_settings + '}');
+        updating = 0;
+        document.getElementById("json2").innerHTML = '{"src":"settings","what":"refresh"}';
+        webSock.send('{"src":"settings","what":"refresh"}');
     }
     let f_help = () => {
-            if (document.getElementById("help").getAttribute("hidden"))
+            if (document.getElementById("help").getAttribute("hidden")){
                 document.getElementById("help").removeAttribute("hidden");
-            else document.getElementById("help").setAttribute("hidden", true);
-        };
-    function f_systemEnabled(source, value){ // if 'ws' we update it once
-            let link = document.querySelector('#systemEnabled');
-
-            if(source=='radio')link.setAttribute("updated", '1');
-
-            if(value=='1'){
-                document.getElementById('systemEnabled_true').checked=true;
-                link.setAttribute('enabled', '1');
+                document.getElementById("bt_help").innerHTML = "Un-Help";
             }else{
-                document.getElementById('systemEnabled_false').checked=true;
-                link.setAttribute('enabled', '0');
+                document.getElementById("help").setAttribute("hidden", true);
+                document.getElementById("bt_help").innerHTML = "Help";
             }
+        };
+    function f_updated(p1){
+        const doc = document.getElementById("updated");
+        if(p1){
+            doc.removeAttribute("hidden");
+            updating = 0;
         }
-    function f_fanTimer(source, value){
-            doc = document.getElementById("fanOnMs");
-            if(source == "ws" && doc.getAttribute("updated") == "true")return;
-            if(source == "input" && value == -1)doc.setAttribute("updated", "true");
-            if(source == "ws")doc.value=Number(value);
+        else doc.setAttribute("hidden", true);
+    }
+    const buttons = document.querySelectorAll("input[name='systemEnabled']");
+    function f_systemEnabled(val){
+        buttons.forEach(button => {
+            if(button.value == val)button.checked = true;
+        });
+    }
+    buttons.forEach(button => {button.onclick = () => {
+        if (button.checked) {
+            const json = '{"src":"settings","what":"system","systemEnabled":'+Number(button.value)+'}';
+            webSock.send(json);
         }
+    }})
     </script>
 </html>
 )=====";
 
-  const char wifi_html[] PROGMEM =  R"=====(
+  const char NETWORK[] PROGMEM =  R"=====(
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta name="file" content="set_bounds.html">
-    <meta name="author" content="Joe Belson 20210822">
+    <meta name="author" content="Joe Belson 20220422">
     <meta name="what" content="esp8266 html for WiFi connected temp/humidity bounds.">
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AtticFan Controller : Network Setup</title>
+    <title id="title" updated="0">Todd's Sprinkler: Network Setup</title>
   </head>
-  <body style="text-align: left;">
+<style>
+  .reboot{
+    background-color: red;
+    color:rgb(255, 255, 255);
+    padding:1.5vw 1.5vw 1.5vw 1.5vw;
+    border-radius: 17%;
+    box-shadow: inset 2px 2px 3px rgba(153, 150, 150, .6),
+    inset -2px -2px 3px rgba(0, 0, 0, 0.6);
+    border-bottom: black solid 3px;
+    border-spacing: 45px;
+    cursor: pointer;
+    font: size 2vw;
+    font-weight: bold;
+    font-size: 17px;
+  }
+  .updated{
+    background-color: green;
+    color:rgb(255, 255, 255);
+    padding:1vw 1vw 1vw 1vw;
+    border-radius: 0%;
+    box-shadow: inset 2px 2px 3px rgba(153, 150, 150, .6),
+    inset -2px -2px 3px rgba(0, 0, 0, 0.6);
+    border-bottom: black solid 3px;
+    border-spacing: 45px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+</style>
+  <body>
     <hr>
-      <table class="calibrate"   id="settings" updated="0">
+    <div onclick="updating=true">
+      <table class="calibrate">
         <caption style="font-weight: bolder;padding-bottom:1rem">
-          <h1>Set WiFi SSID & PWD & IP</h1>
+          <h1>WiFi SSID & PWD & IP</h1>
+          <h2 id="updated" class="updated" hidden>UPDATED</h2>
         </caption>
-          <thead>
-              <tr>
-                  <th>SSID</th>
-                  <th>PWD</th>
-              </tr>
+         <thead>
+            <tr>
+              <th>SSID (Case Sensitive)</th>
+              <th>PWD</th>
+            </tr>
           </thead>
-          <tbody>
-              <tr>
-                  <td><input  id="ssid"   type="text"   name="cred"></td>
-                  <td><input  id="pwd"    type="text"   name="cred"></td>
-                  <td><input  id="submit" type="submit" onclick="f_submit()"></td>
-              </tr>
-          </tbody></table>
-
-
-      <br>
-      <label for="dhcp">DHCP:</label>
-        <input type="checkbox" id="isDhcp" onclick="f_dhcp(this.checked)">
-      <br><br>
-
-      <label for="ip"   name="dhcp">IP:     </label><input id="ip"    type="text" name="dhcp" style="width: 7rem;">
-      <label for="gw"   name="dhcp">Gateway:</label><input id="gw"    type="text" name="dhcp" style="width: 7rem;">
-      <label for="mask" name="dhcp">Mask:   </label><input id="mask"  type="text" name="dhcp" style="width: 7rem;">
-    </body>
+            <tr>
+              <td><input  id="ssid"   type="text"   name="cred"></td>
+              <td><input  id="pwd"    type="text"   name="cred"></td>
+            </tr>
+      </table>
+      <table>
+            <tr><td><br></td></tr>
+            <tr>
+              <td>DHCP: <input type="checkbox" id="isDHCP" name="isDHCPServer" onclick="f_dhcp(this.checked)"/></td>
+            </tr>
+            <tr id="dhcp">
+              <td><label for="ip"   name="dhcp">IP:     </label><input id="ip"    type="text" name="dhcp" style="width: 5rem;"></td>
+              <td><label for="gw"   name="dhcp">Gateway:</label><input id="gw"    type="text" name="dhcp" style="width: 5rem;"></td>
+              <td><label for="mask" name="dhcp">Mask:   </label><input id="mask"  type="text" name="dhcp" style="width: 5rem;"></td>
+            </tr>
+      </table>
+    </div>
+    <p><input  id="submit2" type="submit" value="Submit Changes" onclick="f_submit()">
+      <input type="submit" onclick="history.back()" value="Back to Main">
+      <input id="reboot" type="submit" onclick="f_reboot('reboot')" class="reboot" value="REBOOT" hidden>
+    </p>
+    <hr>
+  </body>
     <script language = "javascript" type = "text/javascript">
   
         let webSock       = new WebSocket("ws://" + window.location.hostname + ":80?source=wifi");
-        webSock.onopen    = function(evt){webSock.send('{"json":' + ping_network + '}');};
+        webSock.onopen    = function(evt){webSock.send('{"src":"network","what":"refresh"}');}
         webSock.onmessage = function(evt){f_webSockOnMessage(evt);}
         webSock.onerror   = function(evt){f_webSockOnError(evt);}
   
-        const empty          = 0  // 0b00000000
-            , readings       = 1  // 0b00000001
-            , settings       = 2  // 0b00000010
-            , net            = 4  // 0b00000100
-            , atticEpochTime = 9  // 0b00001001
-            , fanOnMs        = 17 // 0b00010001
-            , systemEnabled  = 33 // 0b00100001
-            , ping_readings  = 65 // 0b01000001
-            , ping_settings  = 66 // 0b01000010
-            , ping_network   = 68 // 0b01000100
-
-        ;
-
+        let updating = false;  // local flag: don't refresh text boxes using mcu json.  "We are updating values"
         let j = {
-              json : net
+              src : "mcuNetwork"
+            , what : "refresh"
             , ssid : "ssid"
             , pwd : "pwd"
-            , isDHCP : 1
+            , isDHCP : false
             , ip : "11.1.1.11"
             , gw : "11.1.1.254"
             , mask : "255.255.255.0"
+            , updated : false         // flag did MCU just save WiFi credentials?
+            , reboot : false          // flag - tell the MCU to reboot.  Try AP_Mode STA
           };
-
         function f_webSockOnMessage(evt){
-          if(document.getElementById("settings").getAttribute("updated")=="1")return;
-          if(typeof evt.data === "string"){
-              const j=JSON.parse(evt.data);
-              if(j.json != net)return;
-              for(key in j){
-                if(key == "json")continue;
-                dv = document.getElementById(key);
+          if (typeof evt.data === "string") {
+            r = JSON.parse(evt.data);
+            if(r.src != "mcuNetwork")return;
+            j=r;console.log(j);
+            if(updating ^ j.updated)return; // ...updated == bool return from mcu save of the struct.
+            for (key in j){
+              if(key == "src" || key == "what")continue;
+              dv = document.getElementById(key);
+              if(dv.value=="" || dv.value==null){
                 switch(key){
                   case "ssid":dv.value = j.ssid;break;
                   case "isDhcp":f_dhcp(j.isDHCP);break;
                   case "ip":dv.value = j.ip;break;
                   case "gw":dv.value = j.gw;break;
                   case "mask":dv.value = j.mask;break;
+                  case "updated":
+                    if(j.updated){
+                      updating ^= j.updated; // if this is an "updated mcu return" we are done with the last local update
+                      f_reboot('updated');
+                      dv.removeAttribute("hidden");
+                    }break;
                 }
               }
-          }document.getElementById("settings").setAttribute("updated", "1");
-        }
+            }
+          }
+         }
         function f_webSockOnError(evt){}
         function f_submit(){
           for(var key in j){
-            if(key == "json")continue;
-            if(key=="isDHCP")
-              j[key]=document.getElementById(key).checked;
-            else j[key]=document.getElementById(key).value;
+            switch(key){
+              case "src":break;
+              case "isDHCP":j[key]=document.getElementById(key).checked;break;
+              case "updated":j.updated = 1; break;
+              case "reboot":j.reboot = false;break;
+              default: j[key]=document.getElementById(key).value;
+            }
           }
-          j.json = net;
+          j.src = "network";
+          j.what = "submit";
+          console.log(j);
           webSock.send(JSON.stringify(j));
-          document.getElement.getElementById("title").setAttribute("updated", "0");
         }
-        function f_dhcp(){
-          chk = arguments[0];console.log(chk);
-          document.getElementById("isDhcp").checked = chk;
-          const n = document.getElementsByName("dhcp");
-          if(chk){
-            for(var i=0;i<n.length;i++)
-              n[i].setAttribute("hidden", "hidden");
-          }else{
-            for(var i=0;i<n.length;i++)
-              n[i].removeAttribute("hidden");
-          }
+        function f_dhcp(tf){
+          console.log(tf);
+          const dhcp = document.getElementById("dhcp");
+          if(tf)dhcp.setAttribute("hidden", "hidden");
+        else
+        dhcp.removeAttribute("hidden");
+       }
+       function f_reboot(what){
+        switch (what){
+          case 'reboot':
+              webSock.send('{"src":"network","what":"reboot"}');
+              window.location.href='http://' + j.ip;
+            break;
+          case 'updated':
+            // make visible REBOOT
+              document.getElementById("reboot").removeAttribute("hidden");
+            break;
+        }
        }
      </script>
   </html>

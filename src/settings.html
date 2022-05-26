@@ -17,241 +17,251 @@
             font-family: Calibri, Myriad;
             text-align: center;
         }
-        .a {
-            font: italic small-caps bold 12px/30px Georgia, serif;
-        }
-        table.calibrate th {
+        table {
             text-align: center;
-            width: 23pt;
-            border-bottom: 2px solid rgb(8, 8, 8);
-        }
-        table.calibrate {
-            font-size: smaller;
-            margin-left: 10px;
+            margin-left: 5px;
             margin-right: auto;
-            width: 300px;
+            width: 350px;
             border: 1px solid black;
             border-style: solid;
+            font-weight: bold;
+            column-width: 15vw;
         }
-        table.calibrate caption {
-            background-color: #56970c;
-            color: #fff;
-            font-size: large;
+        table td {
+            background-color:#f6f6ff;
+            color: black;
+            border-style: solid;
+            border-width: 1px;
+        }
+        table caption {
+            border-width: 3px;
+            border-style: solid;
+            border-color: #bdc7bd #a2a5a3;
+
+            font-size:medium;
             font-weight: bold;
             letter-spacing: 0.3em;
         }
-        table.calibrate thead th {
-            padding: 3px;
-            background-color: #98e99d;
+        table.calibrate caption {
+            background-color: #0d09ff;
+            color: #fff;
+        }
+        table thead th {
             font-size: 16px;
-            border-width: 1px;
+            border-width: 6px;
             border-style: solid;
-            border-color: #f79646 #ccc;
         }
-        table.calibrate td {
-            font-size: 12px;
-            font-weight: bold;
-            text-align: center;
-            padding: 2px;
-            background-color: shite;
-            color: black;
-            font-weight: bold;
-            min-width: 6.5em;
-            max-width: 6em;
-
-        }
-        table.override th {
-            text-align: center;
-        }
-        table.override {
-            margin-left: 5px;
-            margin-right: auto;
-            width: 650px;
-            border: 1px solid black;
-            border-style: solid;
+        table.calibrate thead th {
+            background-color: #98c2e9;
+            border-color: #4666f7 #9cabf0;
         }
         table.override caption {
             background-color: #f74646;
             color: #fff;
-            font-size: large;
-            font-weight: bold;
-            letter-spacing: 0.3em;
         }
         table.override thead th {
-            padding: 3px;
             background-color: #f8d3de;
-            font-size: 16px;
-            border-width: 1px;
-            border-style: solid;
-            border-color: #f79646 #ccc;
-            column-width: 7in;
+            border-color: #f79646 rgb(247, 191, 87);
         }
-        table.override td {
-            font-size: 12px;
-            font-weight: bold;
-            text-align: center;
-            padding: 2px;
-            background-color:#f6f6ff;
-            color: black;
-            font-weight: bold;
-            column-width: 1.2in;
+        .help {
+                font-size: 1.5vw;
+                text-align: center;
+                font-weight: bold;
+
+                background-color: rgb(248, 241, 241);
+                box-shadow: inset 1vw 1vw 1vw rgba(225, 238, 225, 0.6),
+                    inset -.3vw -.25vw .3vw rgba(16, 17, 16, 0.6);
+
+                padding: .3vw .7vw;
+
+                height:2.5vw;
+                width:5%;
+                cursor: pointer;
+            }
+        .fanOn{
+                text-align: center;
+                background-color: rgb(248, 241, 241);
+                box-shadow: inset 1vw 1vw 1vw rgba(225, 238, 225, 0.6),
+                    inset -.3vw -.25vw .3vw rgba(16, 17, 16, 0.6);
+
+                height:2.0vw;
+                padding:.1vw;
+                background-color:yellow;
+                font-weight: bolder;
+                font-size: 18px;
         }
     </style>
-    <body style="text-align: left">
-        <input id="bt_help" type="button" onclick="f_help()" value="Help" />
+    <body id="body" style="text-align: left">
+        <span id="bt_help" class="help" role="submit" onclick="f_help()" >Help</span>
         <hr />
         <b><i>Note: Values are updated every "Attic Sensor Check-in Seconds". All values are in &degF</i></b>
-        <table class="calibrate" id="settings" updated="false">
+        <table class="calibrate" id="settings">
             <caption>
-                Set Temp & Humidity Bounds
+                Temp & Humidity<br>ON/OFF Limits
             </caption>
             <thead>
                 <tr>
                     <th>*Inside<br>Off &degf</th>
-                    <th>IOD on Value*</th>
-                    <th>IOD off Value*</th>
-                    <th>Fan on Attic* Temp&degf</th>
-                    <th>Fan off Attic Temp&degf</th>
-                    <th>AOD on Value</th>
-                    <th>AOD off Value</th>
-                    <th>AID on Value</th>
-                    <th>AID off Value</th>
+                    <th>Attic ON*<br>Absolute Temp&degf</th>
+                    <th>Attic off<br>Temp&degf</th>
+                </tr></thead>
+                <tbody>
+                    <tr>
+                        <td><input id="inside_off" type="number" name="limit" min="0" max="120" onclick()="updating=1"/></td>
+                        <td><input id="attic_on"   type="number" name="limit" min="0" max="120"/></td>
+                        <td><input id="attic_off"  type="number" name="limit" min="0" max="120"/></td>
+                    </tr>
+                </tbody>
+                <thead><tr>
+                    <th>IOD on<br>Value*</th>
+                    <th>AOD on<br>Value</th>
+                    <th>AID on<br>Value</th>
+                </tr></thead>
+                <tbody>
+                    <tr>
+                        <td><input id="IOD_on" type="number" name="limit" min="0" max="120"/></td>
+                        <td><input id="AOD_on" type="number" name="limit" min="0" max="120"/></td>
+                        <td><input id="AID_on" type="number" name="limit" min="0" max="120"/></td>
+                    </tr>
+                </tbody>
+    
+
+                <thead><tr>
+                    <th>IOD off<br>Value*</th>
+                    <th>AOD off<br>Value</th>
+                    <th>AID off<br>Value</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
-                    <td><input id="inside_off" type="number" name="limit" min="0" max="120"/></td>
-                    <td><input id="IOD_on"     type="number" name="limit" min="0" max="120"/></td>
-                    <td><input id="IOD_off"    type="number" name="limit" min="0" max="120"/></td>
-                    <td><input id="attic_on"   type="number" name="limit" min="0" max="120"/></td>
-                    <td><input id="attic_off"  type="number" name="limit" min="0" max="120"/></td>
-                    <td><input id="AOD_on"     type="number" name="limit" min="0" max="120"/></td>
-                    <td><input id="AOD_off"    type="number" name="limit" min="0" max="120"/></td>
-                    <td><input id="AID_on"     type="number" name="limit" min="0" max="120"/></td>
-                    <td><input id="AID_off"    type="number" name="limit" min="0" max="120"/></td>
+                    <td><input id="IOD_off" type="number" name="limit" min="0" max="120"/></td>
+                    <td><input id="AOD_off" type="number" name="limit" min="0" max="120"/></td>
+                    <td><input id="AID_off" type="number" name="limit" min="0" max="120"/></td>
                 </tr>
             </tbody>
         </table>
         <p style=" font: 14px/17px Monospace ;">
-            <span style=" font: bold 17px/25px Monospace ;">Values to trigger the Fan ON/OFF</span><br>
-            AID: <b><i>Difference</i></b> of Attic minus the Inside temp in degrees fahrenheit <a style="font-size: small;">(A-I)&degf</a><br>
-            AOD: <b><i>Difference</i></b> of Attic minus the Outside temp in degrees fahrenheit <a style="font-size: small;">(A-O)&degf</a><br>
-            IOD: <b><i>Difference</i></b> of Inside minus the Outside temp in degrees fahrenheit <a style="font-size: small;">(I-O)&degf</a><br>
+            <span style=" font: bold 18px/20px Monospace ;">Values to trigger the Fan ON/OFF</span><br>
+            <span style="font-size: 8pt;">
+            AID: Attic minus Inside in degrees fahrenheit &degf<br>
+            AOD: Attic minus Outside in degrees fahrenheit &degf<br>
+            IOD: Inside minus Outside in degrees fahrenheit &degf<br>
+            Attic off: Less than &degf Fan OFF. Unless on setting overrides.
+        </span>
         </p>
         <p style="font-weight: bold; font-size: large">
-            NOTE: Value of zero or empty causes the setting to be ignored
+            NOTE: Zero or Empty settings are ignored.
         </p>
-        <hr />
-        <br />
-
+        <hr/>
+        <br/>
         <table class="override">
-            <caption>
-                Set Override Values
-            </caption>
+            <caption>Set Override Values</caption>
             <thead>
-                <tr>
-                    <th>Fan System<br>Enabled</th>
-                    <th>Attic Sensor Check-In Seconds</th>
-                    <th>Remotes Sensor Check-In Seconds</th>
-                    <th>
-                        <input id="refresh" type="submit" value="Refresh" onclick="f_refresh()"
-                                style=" margin: 1px; color: black; background-color: yellow; font-weight: bold;"/>
-                        <input id="Submit" type="submit" value="Submit" onclick="f_submit()"
-                                style="margin: 2px; color: black; background-color: rgb(248, 138, 171); font-weight: bold;"
-                        />
+              <tr>
+                <th>Fan System<br>Enabled</th>
+                <th>Attic Sensor<br>Check-In Seconds</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <a id="systemEnabled" enabled="1"></a>
+                  <input id="systemEnabled_true"  type="radio" name="systemEnabled" value="1" onclick="f_systemEnabled('radio', this.value)" autocomplete="off" style="align-items: center;display:inline-flex" checked>ON
+                  <input id="systemEnabled_false" type="radio" name="systemEnabled" value="0" onclick="f_systemEnabled('radio', this.value)" autocomplete="off" style="align-items: center;display:inline-flex">OFF
+                </td>
+                <td><input id="delayMs"     type="number" name="limit" min="0" max="600"/></td>
+              </tr>
+            </tbody>
+            <thead>
+              <tr>
+                <th>Remote Sensor<br>Check-In Seconds</th>
+                <th>
+                  <input id="refresh" type="submit" value="Refresh" onclick="f_refresh()" title="Reset all values with those on the server."
+                         style=" margin: 1px; color: black; background-color: yellow; font-weight: bold;"/>
+                  <input id="Submit" type="submit" value="Submit" onclick="f_submit()"
+                         style="margin: 2px; color: black; background-color: rgb(248, 138, 171); font-weight: bold;"/>
                     </th>
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td>
-                        <a id="systemEnabled" updated="false" enabled="1"></a>
-                        <input id="systemEnabled_true"  type="radio" name="systemEnabled" value="1" onclick="f_systemEnabled('radio', this.value)" autocomplete="off" style="align-items: center;display:inline-flex" checked>ON
-                        <input id="systemEnabled_false" type="radio" name="systemEnabled" value="0" onclick="f_systemEnabled('radio', this.value)" autocomplete="off" style="align-items: center;display:inline-flex">OFF
-                    </td>
-                    <td><input id="delayMs"     type="number" name="limit" min="0" max="600"/></td>
-                    <td><input id="remoteSleepSeconds" type="number" name="limit" min="0" max="3600"/></td>
-                    <td id="fanOn" style="font-size: 12px; font-size: 18px;">Fan is On</td>
-                </tr>
-            </tbody>
+                <td><input id="sleep_us" type="number" name="limit"/></td>
+                <td id="fanOn" class="fanOn">Fan is On</td>
+</tbody>
         </table>
-        <p style="font-weight: bold; font-size: large">
-            NOTE: Value of zero or empty causes the setting to be ignored<br>
-            Refresh: Resets all values with those already in play. Refresh happens every "Attic Sensor Check-In Minutes"
-        </p>
-        <hr /><br />
-        <div id="help" hidden="true">
-            <p id="json1" style="font-weight: normal; font-size: 12pt">test</p>
-            <p id="json2" style="font-weight: normal; font-size: 12pt">test:</p>
+        <a id="updated" hidden style="padding: 1px 1px 1px 1px;font-size: 17px; background-color: green">UPDATED</a>
+        <a style="font-weight: bold; font-size: 10pt">
+            <br>
+            A refresh occurs every "Attic Sensor Check-In Minutes"
+        </a>
+        <hr /><a>
+            <input type="submit" onclick="history.back()" value="Home">
+        </a><br>
+        <div id="help" hidden="true" style="font-weight: bold;font-size: 13pt; word-wrap: break-word;">
+            <a>JSON Inbound</a><br><a id="json1"></a>
+            <br><br>
+            <a>JSON Outbound</a><br><a id="json2"></a>
         </div>
     </body>
 
     <script language="javascript" type="text/javascript">
 
-        let webSock = new WebSocket("ws://" + window.location.hostname + ":80?json=2");
-        webSock.onopen = function (evt) {webSock.send('{"json":' + ping_settings + '}');};
-        webSock.onmessage = function (evt) {f_webSockOnMessage(evt);};
-        webSock.onerror = function (evt) {};
+    let webSock = new WebSocket("ws://" + window.location.hostname + ":80");
+    webSock.onopen = function (evt) {webSock.send('{"src":"settings","what":"refresh"}');}
+    webSock.onmessage = function (evt) {f_webSockOnMessage(evt);}
+    webSock.onerror = function (evt) {}
+    document.getElementById("body").onchange = function() {updating=1;}
 
-        const empty          = 0  // 0b00000000
-            , readings       = 1  // 0b00000001
-            , settings       = 2  // 0b00000010
-            , net            = 4  // 0b00000100
-            , atticEpochTime = 9  // 0b00001001
-            , fanOnMs        = 17 // 0b00010001
-            , systemEnabled  = 33 // 0b00100001
-            , ping_readings  = 65 // 0b01000001
-            , ping_settings  = 66 // 0b01000010
-            , ping_network   = 68 // 0b01000100
+    let updating = 0;
 
-        ;
-
-        let j = {
-              json : settings
-            , fanOn : 0
-            , fanOnMs : 318000
-            , attic_on : 150.0
-            , attic_off : 0.0
-            , AID_on : 0
-            , AID_off : 0
-            , AOD_on : 0
-            , AOD_off : 0
-            , IOD_on : 7
-            , IOD_off : 3
-            , inside_off : 70
-            , systemEnabled : 1
-            , delayMs : 360000
-            , remoteSleepSeconds : 120000000
-        };
-
+    let settings = {
+            src : "settings"
+        , fanOn : 0
+        , attic_on : 150.0
+        , attic_off : 0.0
+        , AID_on : 0
+        , AID_off : 0
+        , AOD_on : 0
+        , AOD_off : 0
+        , IOD_on : 7
+        , IOD_off : 3
+        , inside_off : 70
+        , systemEnabled : 1
+        , delayMs : 360000
+        , sleep_us : Number(2*1e6+2)
+        , updated : 0
+    };
     function f_webSockOnMessage(evt) {
         if (typeof evt.data === "string") {
-            s=evt.data;
-            document.getElementById("json2").innerHTML = s;
-            j = JSON.parse(s);
-            if(j.json != settings)return;
-            for (let key in j){
-                if(key == "json" || key == "fanOnMs")continue;
+            r = JSON.parse(evt.data);
+            if(r.src != "mcuSettings")return;
+            settings=r;console.log(settings);
+            if(updating ^ settings.updated)return; // ...updated == bool return from mcu save of the struct.
+            document.getElementById("json1").innerHTML = JSON.stringify(settings);
+            for (let key in settings){
+                if(key == "src" || key == "what")continue;
                 dv = document.getElementById(key);
-                    if(dv.value=="" || dv.value==null){
+                if(dv.value=="" || dv.value==null){
                     switch (key){
+                        case "updated":
+                            f_updated(settings.updated);  // set the Green Updated Flag On/Off
+                            updating ^= settings.updated; // if this is an "updated mcu return" we are done with the last local update
+                          break;
                         case "fanOn":
                             doc = document.getElementById("fanOn");
-                            doc.innerHTML = j.fanOn&j.systemEnabled?"Fan is ON":"Fan is OFF";
-                            doc.style.backgroundColor = j.fanOn&j.systemEnabled?"#98e99d":"#ff0953";
+                            doc.innerHTML = settings.fanOn&settings.systemEnabled?"Fan is ON":"Fan is OFF";
+                            doc.style.backgroundColor = settings.fanOn&settings.systemEnabled?"#03c04A":"red";
                           break;
                         case "delayMs":
-                            dv.value = j.delayMs/(1000);break;// milliseconds to Seconds
+                            dv.value = settings.delayMs/(1000);break;// milliseconds to Seconds
                           break;
-                        case "systemEnabled":
-                            if(document.getElementById("systemEnabled").getAttribute("updated")=='0')
-                                f_systemEnabled(j.systemEnabled, "ws");
+                          case "systemEnabled":
+                              f_systemEnabled("mcuMain", settings.systemEnabled);
                           break;
-                        case "fanOnMs":
-                            f_fanTimer(f_ms2min(j.fanOnMs));
+                          case "sleep_us":
+                              dv.value = Math.round(settings[key]/1e6);
                           break;
                         default :
-                            dv.value = j[key];
+                            dv.value = settings[key];
                     }
                 }
             }
@@ -264,61 +274,64 @@
         return(minutes+tenths);
     }
     function f_submit() {
-        j.json=settings;
-        for (let key in j) {
-            if(key == "json" || key == "fanOn")continue;
+        settings.src=settings;
+        for (let key in settings){
+            if(key == "src" || key == "what" || key == "fanOn")continue;
             let dv = document.getElementById(key);
             switch (key) {
                 case "delayMs":
-                    j[key] = dv.value * 1000; // milliseconds to seconds
-                  break;
-                case "fanOnMs":
-                    j.fanOnMs = dv.value * 1000 * 60; // milliseconds to seconds to minutes
+                    settings[key] = dv.value * 1e3; // milliseconds to seconds
                   break;
                 case "systemEnabled":
-                     j[key] = dv.getAttribute("enabled")=="true"?1:0;
-                     dv.setAttribute("updated", "false");
+                     settings[key] = dv.getAttribute("enabled")==1?1:0;
+                     dv.setAttribute("updated", "0");
                    break;
+                case "sleep_us":
+                    settings[key] = Number(dv.value * 1e6);
+                  break;
                 default:
-                    j[key] = dv.value;
+                    settings[key] = dv.value;
             }
         }
-        document.getElementById("json1").innerHTML=JSON.stringify(j);
-        webSock.send(JSON.stringify(j));
-        f_refresh();
+        settings.src = "settings"; settings.what = "submit"; settings.updated=updating;
+        document.getElementById("json2").innerHTML=JSON.stringify(settings);
+        webSock.send(JSON.stringify(settings));
     }
     function f_refresh() {
         const x = document.getElementsByName("limit");
         for (let i = 0; i < x.length; i++) x[i].value = null;
-        document.getElementById("systemEnabled").setAttribute("updated", "false");
-        document.getElementById("settings").setAttribute("updated","false");
-        document.getElementById("fanOn").innerHTML ="";
-        document.getElementById("fanOn").style.backgroundColor = "#ffffff";
-        webSock.send('{"json":' + ping_settings + '}');
+        updating = 0;
+        document.getElementById("json2").innerHTML = '{"src":"settings","what":"refresh"}';
+        webSock.send('{"src":"settings","what":"refresh"}');
     }
     let f_help = () => {
-            if (document.getElementById("help").getAttribute("hidden"))
+            if (document.getElementById("help").getAttribute("hidden")){
                 document.getElementById("help").removeAttribute("hidden");
-            else document.getElementById("help").setAttribute("hidden", true);
-        };
-    function f_systemEnabled(source, value){ // if 'ws' we update it once
-            let link = document.querySelector('#systemEnabled');
-
-            if(source=='radio')link.setAttribute("updated", '1');
-
-            if(value=='1'){
-                document.getElementById('systemEnabled_true').checked=true;
-                link.setAttribute('enabled', '1');
+                document.getElementById("bt_help").innerHTML = "Un-Help";
             }else{
-                document.getElementById('systemEnabled_false').checked=true;
-                link.setAttribute('enabled', '0');
+                document.getElementById("help").setAttribute("hidden", true);
+                document.getElementById("bt_help").innerHTML = "Help";
             }
+        };
+    function f_updated(p1){
+        const doc = document.getElementById("updated");
+        if(p1){
+            doc.removeAttribute("hidden");
+            updating = 0;
         }
-    function f_fanTimer(source, value){
-            doc = document.getElementById("fanOnMs");
-            if(source == "ws" && doc.getAttribute("updated") == "true")return;
-            if(source == "input" && value == -1)doc.setAttribute("updated", "true");
-            if(source == "ws")doc.value=Number(value);
+        else doc.setAttribute("hidden", true);
+    }
+    const buttons = document.querySelectorAll("input[name='systemEnabled']");
+    function f_systemEnabled(val){
+        buttons.forEach(button => {
+            if(button.value == val)button.checked = true;
+        });
+    }
+    buttons.forEach(button => {button.onclick = () => {
+        if (button.checked) {
+            const json = '{"src":"settings","what":"system","systemEnabled":'+Number(button.value)+'}';
+            webSock.send(json);
         }
+    }})
     </script>
 </html>

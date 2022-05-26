@@ -1,4 +1,4 @@
-data/network
+data backup
 !.pio/build/esp01_m/firmware.*
 .pio/build
 .vscode/.browse.c_cpp.db*
