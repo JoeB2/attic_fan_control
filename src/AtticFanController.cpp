@@ -393,13 +393,14 @@ trace
   Serial.printf("\n%i %s\n%s\n\n", __LINE__, __FUNCTION__, s.c_str());Serial.flush();
 #endif
         atticFan.attic_on        = std::stoi(valFromJson(s, "attic_on"));
-        atticFan.attic_off       = std::stof(valFromJson(s, "attic_off"));
-        atticFan.AID_on          = std::stof(valFromJson(s, "AID_on"));
-        atticFan.AID_off         = std::stof(valFromJson(s, "AID_off"));
-        atticFan.AOD_on          = std::stof(valFromJson(s, "AOD_on"));
-        atticFan.AOD_off         = std::stof(valFromJson(s, "AOD_off"));
-        atticFan.IOD_on          = std::stof(valFromJson(s, "IOD_on"));
-        atticFan.IOD_off         = std::stof(valFromJson(s, "IOD_off"));
+        atticFan.attic_off       = std::stoi(valFromJson(s, "attic_off"));
+        atticFan.inside_off      = std::stoi(valFromJson(s, "inside_off"));
+        atticFan.AID_on          = std::stoi(valFromJson(s, "AID_on"));
+        atticFan.AID_off         = std::stoi(valFromJson(s, "AID_off"));
+        atticFan.AOD_on          = std::stoi(valFromJson(s, "AOD_on"));
+        atticFan.AOD_off         = std::stoi(valFromJson(s, "AOD_off"));
+        atticFan.IOD_on          = std::stoi(valFromJson(s, "IOD_on"));
+        atticFan.IOD_off         = std::stoi(valFromJson(s, "IOD_off"));
         atticFan.systemEnabled   = std::stoi(valFromJson(s, "systemEnabled"))?1:0;
         atticFan.delayMs         = std::stoul(valFromJson(s, "delayMs"));
         atticFan.sleep_us        = std::stoull(valFromJson(s, "sleep_us"));
