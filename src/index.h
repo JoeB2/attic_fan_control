@@ -1,5 +1,5 @@
 // pgm_read_byte() bug Stack Dumps: https://github.com/esp8266/Arduino/issues/3140 
-#undef pgm_read_byte(addr)
+#undef pgm_read_byte
 #define pgm_read_byte(addr)                                                             \
 (__extension__({                                                                        \
     PGM_P __local = (PGM_P)(addr);  /* isolate varible for macro expansion */           \
@@ -100,7 +100,7 @@ const char MAIN[] PROGMEM =  R"=====(
             }
             .sensors-grid{
                 display:grid;
-                grid-template-columns:25vw 13vw 21vw 13vw;
+                grid-template-columns:24.5vw 12.3vw 20vw 13vw;
                 grid-template-rows: 6vw 4vw 4vw 4vw 7vw;
 
                 box-sizing: border-box;
@@ -146,10 +146,18 @@ const char MAIN[] PROGMEM =  R"=====(
                 color: blue;
                 font-size:2.0vw;
             }
+            .units {
+                color: #a81a1a;
+                font-weight: bold;
+                font-family: Verdana;
+
+                padding-left: 0vw;
+                font-size: 1.3vw;
+            }
         </style>
     </head>
         <h3 style="margin: 1vw 5vw;width: 72.5vw;">ESP8266 Attic Fan Manager</h3>
-        <main class="sensors-grid" style="font-size:2.4vw;">
+        <main class="sensors-grid" style="font-size:2.25vw;">
             <div>
                 <span id="bt_help" class="help" role="submit"
                     onclick="f_help()" value="Help" title="Hide/Show WebSock Messages">Help
@@ -188,13 +196,6 @@ const char MAIN[] PROGMEM =  R"=====(
                 <span id="h3">%H3%</span>
                 <sup class="units">%</sup>&nbsp&nbsp
             </div>
-            <div><i class="fas fa-thermometer-empty" style="color:#00add6; margin-left: 1.5vw;font-size: 2.3vw"></i>
-                <span title="Temperature water comes out of the air.">Dew Point</span>
-            </div>
-            <div>
-                <span id="dp3">%DP3%</span>
-                <sup class="units">&degF</sup>&nbsp&nbsp
-            </div>
             <div>
                 <i class="fas fa-tachometer-alt" style="color: #06b106; margin-left: .50vw; font-size:2.3vw;"></i>
                 <span title="Air pressure :  NOTE: Standard is 14.7 PSI at Sea Level. (29.92 in Hg)">Barometer</span>
@@ -202,6 +203,13 @@ const char MAIN[] PROGMEM =  R"=====(
             <div>
                 <span id="p3">%P3%</span>
                 <sup class="units">Hg</sup>
+            </div>
+            <div><i class="fas fa-thermometer-empty" style="color:#00add6; margin-left: 1.5vw;font-size: 2.3vw"></i>
+                <span title="Temperature water comes out of the air.">Dew Point</span>
+            </div>
+            <div>
+                <span id="dp3">%DP3%</span>
+                <sup class="units">&degF</sup>&nbsp&nbsp
             </div>
             <div>
                 <svg enable-background='new 0 0 58.422 40.639'height=2vw id=Layer_1 version=1.1 viewBox='0 0 58.422 40.639'width=4vw x=0px xml:space=preserve xmlns=http://www.w3.org/2000/svg xmlns:xlink=http://www.w3.org/1999/xlink y=0px>
@@ -857,7 +865,7 @@ const char MAIN[] PROGMEM =  R"=====(
     <meta name="what" content="esp8266 html for WiFi connected temp/humidity bounds.">
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="title" updated="0">Todd's Sprinkler: Network Setup</title>
+    <title id="title" updated="0">Attic Fan Controller: Network Setup</title>
   </head>
 <style>
   .reboot{
@@ -912,9 +920,9 @@ const char MAIN[] PROGMEM =  R"=====(
               <td>DHCP: <input type="checkbox" id="isDHCP" name="isDHCPServer" onclick="f_dhcp(this.checked)"/></td>
             </tr>
             <tr id="dhcp">
-              <td><label for="ip"   name="dhcp">IP:     </label><input id="ip"    type="text" name="dhcp" style="width: 5rem;"></td>
-              <td><label for="gw"   name="dhcp">Gateway:</label><input id="gw"    type="text" name="dhcp" style="width: 5rem;"></td>
-              <td><label for="mask" name="dhcp">Mask:   </label><input id="mask"  type="text" name="dhcp" style="width: 5rem;"></td>
+              <td><label for="ip"   name="dhcp">IP:     </label><input id="ip"   type="text" name="dhcp" style="width: 6.3rem;"></td>
+              <td><label for="gw"   name="dhcp">Gateway:</label><input id="gw"   type="text" name="dhcp" style="width: 6.3rem;"></td>
+              <td><label for="mask" name="dhcp">Mask:   </label><input id="mask" type="text" name="dhcp" style="width: 6.3rem;"></td>
             </tr>
       </table>
     </div>
@@ -976,7 +984,10 @@ const char MAIN[] PROGMEM =  R"=====(
           for(var key in j){
             switch(key){
               case "src":break;
-              case "isDHCP":j[key]=document.getElementById(key).checked;break;
+              case "isDHCP":
+                if(document.getElementById(key).checked)j[key]=1
+                  else j[key]=0;
+                break;
               case "updated":j.updated = 1; break;
               case "reboot":j.reboot = false;break;
               default: j[key]=document.getElementById(key).value;

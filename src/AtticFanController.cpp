@@ -5,13 +5,13 @@
   Purpose:  Regulate an attic fan's on and off.  The fan will move air from the hallway into the attic
             and the attic air will consequently move out of the attic's roof and eves vents.
 
-  What this does: Measurement of attic temperature, hallway temperatue, and outside temperature are calculated
+  What this does: Measurement of attic temperature, hallway temperature, and outside temperature are calculated
             fed into a function to determine whether to turn the fan on or turn the fan off.
 
   The Fan ON/OFF function: uses the three temperatures (Attic, Inside, Outside) and compares them and
             their differences to values provided by you to automate the attic fan during the hot summer days.
 
-  Function: There are four hosted web pages: 1. Main page http://ip showing status and providing you with a fan overide
+  Function: There are four hosted web pages: 1. Main page http://ip showing status and providing you with a fan override
             function.  2. A settings page http://ip/settings where you can enter temperature difference values that will trigger
             Fan ON/OFF activity.  3. A WiFi settings page http://ip/wifi where local WiFi information can be entered.
             4. A over the air OTA page http://ip/update where firmware or static storage information can be uploaded to
@@ -20,23 +20,25 @@
             operational temperature deltas and the WiFi credential information, respectively.
 
             A value of zero "0" for a given Fan operational parameter disables that parameter.
-  NOTE:     The parameters entered on the http://ip/settings page denote the temperature difference in degess Fahrenheit.
+  NOTE:     The parameters entered on the http://ip/settings page denote the temperature difference in degrees Fahrenheit.
 
             example: AOD on value: "Attic Outside Delta on" a value of 10 indicates you want the fan on
-            if Attic Temp minus Outside temp is greter than or equal to 10 degrees f.  Absolute temperature settings are
+            if Attic Temp minus Outside temp is greater than or equal to 10 degrees f.  Absolute temperature settings are
             specifically labeled as such.
-  int(4), uint(4), uint32(4), long(4), uLong(4), uLongLong(8), short(2), ushort(2), float(4), double(8)
+            int(4), uint(4), uint32(4), long(4), uLong(4), uLongLong(8), short(2), ushort(2), float(4), double(8)
 
+  Primary Parts:
+            ESP8266 - ESP01, 2ea DS18b20, relay, PCB/3.3vdc regulator; 
 */
 
-//#define dbg
+#define dbg
 #ifdef dbg
   u32 ms=millis();
   #define trace Serial.printf("%i %lums, ", __LINE__, millis()-ms);ms=millis();Serial.flush();
 #else
   #define trace ;
 #endif
-//#define dbg2
+#define dbg2
 
 #include <LittleFS.h>
 #include <ESP8266WiFi.h>
@@ -67,9 +69,10 @@
 #define SSR_PIN 5       // ESP01: 3
 #define ALTITUDE 394    // MSL altitude at JJ's house
 #define WiFiChannel 7   // ESP NOW requires all peers are on the same channel
-#define ONE_WIRE_BUS 4  //  ESP01: 0
+#define ONE_WIRE_BUS 4  // ESP01: 0
 
-const char AP_SSID[] = "AtticFan AP: 10.0.1.23"; // max length 32
+const char AP_SSID[]   = "AtticFan AP: 10.17.17.23"
+         , HOST_NAME[] = "JJ's Attic Fan Controller"; // max length 32
 
 const DeviceAddress // DS18B20 Addresses
           T1={0x28, 0x9C, 0x50, 0xF4, 0x3E, 0x19, 0x01, 0x12}  // white mark : Attic ...0x12
@@ -91,17 +94,26 @@ OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
 
 IPAddress  // soft AP IP info
-          ip_AP(10,0,1,23)
-        , ip_GW(10,0,0,125)
-        , ip_AP_GW(10,0,1,23)
+          ip_AP(10,17,1,23)
+        , ip_GW(10,17,0,125)
+        , ip_AP_GW(10,17,1,23)
         , ip_subNet(255,255,255,128);
 
   struct {
-      std::string ssid = "myWiFi";     // max 342 characters
-      std::string pwd  = "secretPWD";  // max 64 characters
-      bool isDHCP      = false;
-      std::string ip   = "198.162.123.117";
-      std::string gw   = "198.162.123.117";
+//      std::string ssid = "myWiFi";     // max 342 characters
+//      std::string pwd  = "secretPWD";  // max 64 characters
+//      std::string host = HOST_NAME;
+//      bool isDHCP      = false;
+//      std::string ip   = "198.162.123.117";
+//      std::string gw   = "198.162.123.117";
+//      std::string mask = "255.255.255.128";
+//      bool isDHCP      = false;
+      std::string ssid = "JRJAG";     // max 342 characters
+      std::string pwd  = "GeorgeTheDogy";  // max 64 characters
+      std::string host = HOST_NAME;
+      bool isDHCP      = true;
+      std::string ip   = "10.137.17.23";
+      std::string gw   = "10.137.17.1";
       std::string mask = "255.255.255.128";
       bool updated     = 0;
 
@@ -187,7 +199,7 @@ remote_data_t now_Msg;
         // turn off fan, if there is not an "Off Setting" that has been set else leave as is
         fanOn &= (AID_off | AOD_off | IOD_off | attic_off | inside_off);
 
-        // NOTE: On settings overide conflicting (AID, AOD, IOD) temp off settings
+        // NOTE: On settings override conflicting (AID, AOD, IOD) temp off settings
         // fanOn ON checks: Should the fan be turned on because of a setting?  else leave as is
         fanOn |= ( (AOD_on&(t1-t3 >= AOD_on)) | (AID_on&(t1-t2 >= AID_on)) | (IOD_on&(t2-t3 >= IOD_on)) | (attic_on&(t1>=attic_on)));
         return fanOn;
@@ -311,7 +323,7 @@ trace
       std::string what = valFromJson(s, "what");
 
 #ifdef dbg
-    Serial.printf("%i ws_in: %s\n", __LINE__, s.c_str());
+    Serial.printf("\n%i ws_in: %s\n", __LINE__, s.c_str());
 #endif
       if(src=="main"){
         if(what=="system"){
@@ -428,6 +440,9 @@ trace
         return(false);
   }
   void initWiFi(const std::string &s){
+#ifdef dbg
+  Serial.printf("\n%i : %s\n", __LINE__, s.c_str());
+#endif
     network.ssid   = valFromJson(s, "ssid");
     network.ip     = valFromJson(s, "ip");
     network.pwd    = valFromJson(s, "pwd");
@@ -437,6 +452,9 @@ trace
   }
   // saveWiFi() resets "updated" flag before the save
   bool saveWiFi(){
+#ifdef dbg
+  Serial.printf("\n%i : %s : %s\n", __LINE__, __FUNCTION__, network.toStr().c_str());
+#endif
     network.updated=0; // we never save "updated's" state
     File f = LittleFS.open(F("/network"), "w");
     if(f){
@@ -447,17 +465,26 @@ trace
     else
       return 0;
   }
+//Connect WiFi
   wl_status_t wifiConnect(WiFiMode_t m){
     WiFi.disconnect(true);
     WiFi.softAPdisconnect(true);
+    WiFi.softAP(AP_SSID);
+
+#ifdef dbg2
+  // WIFI_OFF = 0, WIFI_STA = 1, WIFI_AP = 2, WIFI_AP_STA = 3
+  std::string mode;
+  switch(m){case 0: mode="OFF";case 1: mode="STA"; case 2: mode="AP"; case 3: mode="AP_STA";}
+  Serial.printf("\n%i: WiFi_Mode: %s : %s\n",__LINE__, mode.c_str(), network.toStr().c_str());
+#endif
 
     WiFi.mode(m);  // WIFI_AP_STA,WIFI_AP; WIFI_STA;
     switch(m){
         case WIFI_STA:
             WiFi.enableAP(false);
             WiFi.enableSTA(true);
-            WiFi.hostname("Attic Fan Controller");
-            if(network.isDHCP==false)WiFi.config(str2IP(network.ip), str2IP(network.gw), str2IP(network.mask));
+            WiFi.setHostname(network.host.c_str());
+            if(!network.isDHCP)WiFi.config(str2IP(network.ip), str2IP(network.gw), str2IP(network.mask));
             WiFi.begin(network.ssid.c_str(), network.pwd.c_str(), WiFiChannel);
           break;
         case WIFI_AP:
@@ -503,12 +530,17 @@ trace
 #endif
 
 #ifdef dbg
-    Serial.printf("%i ip: %s, gw: %s, mask: %s\n", __LINE__, WiFi.localIP().toString().c_str(), WiFi.gatewayIP().toString().c_str(), WiFi.subnetMask().toString().c_str());Serial.flush();
+    Serial.printf("%i host: %s, ip: %s, gw: %s, mask: %s\n", __LINE__, WiFi.hostname().c_str(), WiFi.localIP().toString().c_str(), WiFi.gatewayIP().toString().c_str(), WiFi.subnetMask().toString().c_str());Serial.flush();
     Serial.printf("%i AP_ssid: \"%s\", AP_ip: %s\n", __LINE__, WiFi.softAPSSID().c_str(), WiFi.softAPIP().toString().c_str());Serial.flush();
     Serial.printf("%i MAC: %s, RSSI: %i\n", __LINE__, WiFi.macAddress().c_str(), WiFi.RSSI());Serial.flush();
     Serial.printf("%i WiFi.Mode: %hhu, WiFi.Status(): %hhu, connect seconds: %lu\n\n", __LINE__, WiFi.getMode(), WiFi.status(), (millis() - startup)/1000);Serial.flush();
     delay(100);
 #endif
+  if(WiFi.status() == WL_CONNECTED){
+    network.ip = WiFi.localIP().toString().c_str();
+    network.gw = WiFi.gatewayIP().toString().c_str();
+    network.mask = WiFi.subnetMask().toString().c_str();
+  }
     return(WiFi.status());
   }
 	IPAddress str2IP(const std::string &s){

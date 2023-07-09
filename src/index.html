@@ -88,7 +88,7 @@
             }
             .sensors-grid{
                 display:grid;
-                grid-template-columns:25vw 13vw 21vw 13vw;
+                grid-template-columns:24.5vw 12.3vw 20vw 13vw;
                 grid-template-rows: 6vw 4vw 4vw 4vw 7vw;
 
                 box-sizing: border-box;
@@ -134,10 +134,18 @@
                 color: blue;
                 font-size:2.0vw;
             }
+            .units {
+                color: #a81a1a;
+                font-weight: bold;
+                font-family: Verdana;
+
+                padding-left: 0vw;
+                font-size: 1.3vw;
+            }
         </style>
     </head>
         <h3 style="margin: 1vw 5vw;width: 72.5vw;">ESP8266 Attic Fan Manager</h3>
-        <main class="sensors-grid" style="font-size:2.4vw;">
+        <main class="sensors-grid" style="font-size:2.25vw;">
             <div>
                 <span id="bt_help" class="help" role="submit"
                     onclick="f_help()" value="Help" title="Hide/Show WebSock Messages">Help
@@ -176,13 +184,6 @@
                 <span id="h3">%H3%</span>
                 <sup class="units">%</sup>&nbsp&nbsp
             </div>
-            <div><i class="fas fa-thermometer-empty" style="color:#00add6; margin-left: 1.5vw;font-size: 2.3vw"></i>
-                <span title="Temperature water comes out of the air.">Dew Point</span>
-            </div>
-            <div>
-                <span id="dp3">%DP3%</span>
-                <sup class="units">&degF</sup>&nbsp&nbsp
-            </div>
             <div>
                 <i class="fas fa-tachometer-alt" style="color: #06b106; margin-left: .50vw; font-size:2.3vw;"></i>
                 <span title="Air pressure :  NOTE: Standard is 14.7 PSI at Sea Level. (29.92 in Hg)">Barometer</span>
@@ -190,6 +191,13 @@
             <div>
                 <span id="p3">%P3%</span>
                 <sup class="units">Hg</sup>
+            </div>
+            <div><i class="fas fa-thermometer-empty" style="color:#00add6; margin-left: 1.5vw;font-size: 2.3vw"></i>
+                <span title="Temperature water comes out of the air.">Dew Point</span>
+            </div>
+            <div>
+                <span id="dp3">%DP3%</span>
+                <sup class="units">&degF</sup>&nbsp&nbsp
             </div>
             <div>
                 <svg enable-background='new 0 0 58.422 40.639'height=2vw id=Layer_1 version=1.1 viewBox='0 0 58.422 40.639'width=4vw x=0px xml:space=preserve xmlns=http://www.w3.org/2000/svg xmlns:xlink=http://www.w3.org/1999/xlink y=0px>

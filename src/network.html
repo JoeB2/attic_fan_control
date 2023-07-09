@@ -6,7 +6,7 @@
     <meta name="what" content="esp8266 html for WiFi connected temp/humidity bounds.">
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="title" updated="0">Todd's Sprinkler: Network Setup</title>
+    <title id="title" updated="0">Attic Fan Controller: Network Setup</title>
   </head>
 <style>
   .reboot{
@@ -61,9 +61,9 @@
               <td>DHCP: <input type="checkbox" id="isDHCP" name="isDHCPServer" onclick="f_dhcp(this.checked)"/></td>
             </tr>
             <tr id="dhcp">
-              <td><label for="ip"   name="dhcp">IP:     </label><input id="ip"    type="text" name="dhcp" style="width: 5rem;"></td>
-              <td><label for="gw"   name="dhcp">Gateway:</label><input id="gw"    type="text" name="dhcp" style="width: 5rem;"></td>
-              <td><label for="mask" name="dhcp">Mask:   </label><input id="mask"  type="text" name="dhcp" style="width: 5rem;"></td>
+              <td><label for="ip"   name="dhcp">IP:     </label><input id="ip"   type="text" name="dhcp" style="width: 6.3rem;"></td>
+              <td><label for="gw"   name="dhcp">Gateway:</label><input id="gw"   type="text" name="dhcp" style="width: 6.3rem;"></td>
+              <td><label for="mask" name="dhcp">Mask:   </label><input id="mask" type="text" name="dhcp" style="width: 6.3rem;"></td>
             </tr>
       </table>
     </div>
@@ -125,7 +125,10 @@
           for(var key in j){
             switch(key){
               case "src":break;
-              case "isDHCP":j[key]=document.getElementById(key).checked;break;
+              case "isDHCP":
+                if(document.getElementById(key).checked)j[key]=1
+                  else j[key]=0;
+                break;
               case "updated":j.updated = 1; break;
               case "reboot":j.reboot = false;break;
               default: j[key]=document.getElementById(key).value;
